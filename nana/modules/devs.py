@@ -101,8 +101,17 @@ async def executor(client, message):
 
 @app.on_message(Filters.me & Filters.command("ip", Command))
 async def public_ip(_client, message):
-    ip = await AioHttp().get_text("https://api.ipify.org")
-    await message.edit(f'<code>{ip}</code>', parse_mode='html')
+    j = await AioHttp().get_json("http://ip-api.com/json")
+    stats = f"**ISP {j['isp']}:**\n"
+    stats += f"**AS:** `{j['as']}`\n"
+    stats += f"**IP Address:** `{j['query']}`\n"
+    stats += f"**Country:** `{j['country']}`\n"
+    stats += f"**Zip code:** `{j['zip']}`\n"
+    stats += f"**Lattitude:** `{j['lat']}`\n"
+    stats += f"**Longitude:** `{j['lon']}`\n"
+    stats += f"**Time Zone:** `{j['timezone']}`"
+    await message.edit(stats, parse_mode='markdown')
+
 
 
 @app.on_message(Filters.me & Filters.command("sh", Command))

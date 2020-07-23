@@ -63,3 +63,4 @@ class Development(Config):
 	TEST_DEVELOP = None
 	LOGGER = False
 	TERMUX_USER = False # Make it True if you are a Termux User
+	PM_PERMIT = False
