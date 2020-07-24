@@ -1,10 +1,8 @@
-from jikanpy import Jikan
 import math
 import time
 import requests
 import json
 import asyncio
-from jikanpy.exceptions import APIException
 
 from pyrogram import Filters
 
@@ -13,10 +11,10 @@ from nana import app, Command
 from nana.helpers.string import replace_text
 
 
-__MODULE__ = "MyAnimeList"
+__MODULE__ = "Anilist"
 
 __HELP__ = """
-Get information about anime, manga or characters from [MyAnimeList](https://myanimelist.net).
+Get information about anime, manga or characters from [Anilist](https://anilist.co).
 
 ──「 **Anime** 」──
 -> `anime <anime>`
@@ -32,17 +30,11 @@ returns information about the character.
 -> `manga <manga>`
 returns information about the manga.
 
-──「 **Upcoming Anime** 」──
--> `upcoming`
-returns a list of new anime in the upcoming seasons.
-
 ──「 **Airing** 」──
 -> `airing <anime>`
 To get airing time of the anime.
 
 """
-
-jikan = Jikan()
 
 
 def shorten(description, info='anilist.co'):
@@ -188,20 +180,6 @@ query ($id: Int,$search: String) {
 
 
 url = 'https://graphql.anilist.co'
-
-
-@app.on_message(Filters.me & Filters.command("upcoming", Command))
-async def upcoming(_client, message):
-    rep = "<b>Upcoming anime</b>\n"
-    later = jikan.season_later()
-    anime = later.get("anime")
-    for new in anime:
-        name = new.get("title")
-        url = new.get("url")
-        rep += f"• <a href='{url}'>{name}</a>\n"
-        if len(rep) > 1000:
-            break
-    await message.edit(rep, parse_mode='html')
 
 
 @app.on_message(Filters.me & Filters.command("airing", Command))
