@@ -180,7 +180,7 @@ async def terminal(client, message):
 async def log(_client, message):
     f = open("nana/logs/error.log", "r")
     data = await deldog(message, f.read())
-    await message.edit("`Your recent logs stored here : `{}".format(data))
+    await message.edit(f"`Your recent logs stored here : `{data}")
 
 
 @app.on_message(Filters.me & Filters.command("dc", Command))

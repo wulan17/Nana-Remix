@@ -448,7 +448,6 @@ async def progressdl(current, total, event, start, type_of_ps, file_name=None):
             ''.join("▰" for i in range(math.floor(percentage / 10))),
             ''.join("▱" for i in range(10 - math.floor(percentage / 10))),
             round(percentage, 2))
-        await asyncio.sleep(5)
         tmp = progress_str + \
               "{0} of {1}\nETA: {2}".format(
                   humanbytes(current),
