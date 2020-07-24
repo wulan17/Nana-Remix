@@ -29,6 +29,10 @@ Example: `yts lion king`
 -> `ytsearch (movie name)`
 Sends magnetlink using assistant.
 
+──「 **Sakubei** 」──
+-> `sb (anime name)`
+return torrent link for anime or hentai.
+
 """
 
 
