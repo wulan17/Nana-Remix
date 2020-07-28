@@ -152,7 +152,7 @@
     },
     "sw_api": {
       "description": "Read SpamWatch Docs on How to obtain api, https://docs.spamwat.ch/",
-      "required": true
+      "required": false
     }
   },
   "buildpacks": [
