@@ -15,44 +15,48 @@ This module can help you for generate memes and style text, just take a look and
 
 ──「 **Stretch Text** 」──
 -> `str`
-stretch text
+__stretch text__
 
 ──「 **Copy Pasta** 」──
 -> `cp`
-add randoms emoji to text.
+__add randoms emoji to text.__
 
 ──「 **Scam** 」──
 -> `scam <action>`
-chat action.
+__chat input action.__
 
-scame types: `'typing','upload_photo', 'record_video', 'upload_video', 'record_audio', 'upload_audio', 'upload_document', 'find_location','record_video_note', 'upload_video_note', 'playing'`
+**scame types**: '`typing`', '`upload_photo`', '`record_video`', '`upload_video`', '`record_audio`', '`upload_audio`', '`upload_document`', '`find_location`', '`record_video_note`', '`upload_video_note`', '`playing`'
 
 ──「 **Mock text** 」──
 -> `mocktxt`
-Mock someone with text.
+__Mock someone with text.__
 
 ──「 **Vaporwave/Aestethic** 」──
 -> `aes`
-Convert your text to Vaporwave.
+__Convert your text to Vaporwave.__
 
-──「 **Vaporwave/Aestethic** 」──
+──「 **SPAM** 」──
 -> `spam` (value) (word)
-spams a word with value given
+__spams a word with value given__
 
 -> `spamstk` (value)
-Reply to a sticker to spam the sticker
+__Reply to a sticker to spam the sticker__
 
 ──「 **Shrugs** 」──
 -> `shg`
-Free Shrugs?..
+__Free Shrugs?..__
 
 ──「 **Pat** 」──
 -> `pat`
-pat gifs
+__pat gifs__
+
+——「 **the F sign** 」──
+-> `f`
+__press **f** to show some respect!__
 
 ──「 **Fake Screenshot** 」──
 -> `fakess`
-fake notification toasts
+__fake screenshot notification toasts__
 """
 
 
@@ -72,7 +76,7 @@ async def pat(client, message):
         URL = "https://some-random-api.ml/animu/pat"
         async with session.get(URL) as request:
             if request.status == 404:
-                return await message.edit("`no Pats for u :c")
+                return await message.edit("**no Pats for u :c**")
             result = await request.json()
             url = result.get("link", None)
             await message.delete()
@@ -98,7 +102,7 @@ async def scam(client, message):
         scam_action = str(input_str[1]).lower()
         scam_time = int(input_str[2])
     else:
-        await message.edit("`Invalid Syntax !!`")
+        await message.edit("**Invalid Syntax!**")
         return
     try:
         if scam_time > 0:
@@ -137,10 +141,10 @@ async def spam(client, message):
 @app.on_message(Filters.me & Filters.command("spamstk", Command))
 async def spam_stick(client, message):
     if not message.reply_to_message:
-        await message.edit("`reply to a sticker with amount you want to spam`")
+        await message.edit("**reply to a sticker with amount you want to spam**")
         return
     if not message.reply_to_message.sticker:
-        await message.edit("`reply to a sticker with amount you want to spam`")
+        await message.edit("**reply to a sticker with amount you want to spam**")
         return
     else:
         times = message.command[1]
@@ -168,7 +172,7 @@ async def owo(_client, message):
     elif message.reply_to_message and len(cmd) == 1:
         text = message.reply_to_message.text
     elif len(cmd) == 1:
-        await message.edit("`cant uwu the void.`")
+        await message.edit("**cant uwu the void.**")
         await asyncio.sleep(2)
         await message.delete()
         return
@@ -198,7 +202,7 @@ async def pay_respecc(_client, message):
     elif message.reply_to_message and len(cmd) == 1:
         paytext = message.reply_to_message.text
     elif len(cmd) == 1:
-        await message.edit("`Press F to Pay Respecc`")
+        await message.edit("**Press F to Pay Respecc!**")
         await asyncio.sleep(2)
         await message.delete()
         return
