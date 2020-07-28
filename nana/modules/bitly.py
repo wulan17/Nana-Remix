@@ -4,13 +4,9 @@ from asyncio import sleep
 from nana import app, Command
 from nana.helpers.expand import expand_url
 
-__MODULE__ = "Link Shortner"
+__MODULE__ = "Link Expander"
 __HELP__ = """
-This module will shortener your link
-
-──「 **shorten url** 」──
--> `bitly (link)`
-Shorten your url with bitly
+This module will expand your link
 
 ──「 **expand url** 」──
 -> `expand (link)`
