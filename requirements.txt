@@ -22,7 +22,6 @@ pafy==0.5.5
 youtube_dl==2020.7.28
 googletrans==3.0.0
 currencyconverter
-bitlyshortener==0.3.5
 heroku3==4.2.1
 uptime
 py-cpuinfo
