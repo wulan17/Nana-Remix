@@ -7,8 +7,9 @@ import os
 import pycurl
 from pyrogram import Filters
 
-from nana import app, Command, log
+from nana import app, Command, log, AdminSettings
 from .downloads import download_file_from_tg, name_file, humanbytes
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "transfer sh"
 __HELP__ = """
@@ -21,19 +22,19 @@ Reply to telegram file for mirroring to transfer.sh
 """
 
 
-@app.on_message(Filters.me & Filters.command("tfsh", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("tfsh", Command))
 async def tfsh(client, message):
     if not message.reply_to_message:
-        await message.edit("`Reply to any file telegram message!`")
+        await msg(message, text="`Reply to any file telegram message!`")
         return
-    await message.edit("`Processing...`")
+    await msg(message, text="`Processing...`")
     name = await name_file(client, message)
     await download_file_from_tg(client, message)
     name_file_upload = name[-10:] if len(name) > 10 else name
     name_file_upload.encode('ascii', 'ignore')
     os.rename(r'nana/downloads/{}'.format(name), r'nana/downloads/{}'.format(name_file_upload))
     print(name_file_upload)
-    await message.edit(
+    await msg(message, text=
         await send_to_transfersh("nana/downloads/{}".format(name_file_upload), message, name_file_upload))
     os.remove("nana/downloads/{}".format(name_file_upload))
     return
@@ -45,7 +46,7 @@ async def send_to_transfersh(file, message, name):
     final_date = get_date_in_two_weeks()
     file_name = os.path.basename(file)
 
-    await message.edit("\nSending file: {} (size of the file: {})".format(file_name, size_of_file))
+    await msg(message, text="\nSending file: {} (size of the file: {})".format(file_name, size_of_file))
     url = 'https://transfer.sh/{}'.format(name)
     c = pycurl.Curl()
     c.setopt(c.URL, url)

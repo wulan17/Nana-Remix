@@ -11,9 +11,10 @@ import requests
 from pyrogram import Filters, InlineKeyboardMarkup, InlineKeyboardButton
 from pytube import YouTube
 
-from nana import app, setbot, Command
+from nana import app, setbot, Command, AdminSettings
 from nana.helpers.parser import escape_markdown
 from nana.modules.downloads import download_url
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "YouTube"
 __HELP__ = """
@@ -30,33 +31,33 @@ Download youtube music, and then send to tg as music.
 """
 
 
-@app.on_message(Filters.user("self") & Filters.command(["ytdl"], Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command(["ytdl"], Command))
 async def youtube_download(_client, message):
 	args = message.text.split(None, 2)
-	await message.edit("Checking")
+	await msg(message, text="Checking")
 	if len(args) == 1:
-		await message.edit("Write any args here!")
+		await msg(message, text="Write any args here!")
 		return
 	try:
 		yt = YouTube(args[1])
 	except ValueError:
-		await message.edit("Invalid URL!")
+		await msg(message, text="Invalid URL!")
 		return
 
 	if len(args) == 2:
 		link = args[1]
 		text = "🎬 **Title:** [{}]({})\n".format(escape_markdown(yt.title), link)
 		status = "**Downloading video...**\n"
-		await message.edit(status + text, disable_web_page_preview=True)
+		await msg(message, text=status + text, disable_web_page_preview=True)
 		YouTube(link).streams.first().download('nana/downloads', filename="tempvid")
 		status = "**Uploading File To Telegram...**\n"
-		await message.edit(status + text, disable_web_page_preview=True)
+		await msg(message, text=status + text, disable_web_page_preview=True)
 		await app.send_video(message.chat.id, video="nana/downloads/tempvid.mp4")
 		status = "**Removing Temp File...**"
-		await message.edit(status)
+		await msg(message, text=status)
 		os.remove('nana/downloads/tempvid.mp4')
 		status = "** Done ✔️✔️**\n"
-		await message.edit(status + text, disable_web_page_preview=True)
+		await msg(message, text=status + text, disable_web_page_preview=True)
 
 		return
 	if len(args) == 3:
@@ -64,31 +65,31 @@ async def youtube_download(_client, message):
 		reso = args[2]
 		text = "🎬 **Title:** [{}]({})\n".format(escape_markdown(yt.title), link)
 		status = "**Downloading video...**\n"
-		await message.edit(status + text, disable_web_page_preview=True)
+		await msg(message, text=status + text, disable_web_page_preview=True)
 		stream = yt.streams.filter(file_extension='mp4').filter(resolution="{}".format(reso)).first()
 		stream.download('nana/downloads', filename="tempvid")
 		status = "**Uploading File To Telegram...**\n"
-		await message.edit(status + text, disable_web_page_preview=True)
+		await msg(message, text=status + text, disable_web_page_preview=True)
 		await app.send_video(message.chat.id, video="nana/downloads/tempvid.mp4")
 		status = "**Removing Temp File...**"
-		await message.edit(status)
+		await msg(message, text=status)
 		os.remove('nana/downloads/tempvid.mp4')
 		status = "**Done ✔️✔️**\n"
-		await message.edit(status + text, disable_web_page_preview=True)
+		await msg(message, text=status + text, disable_web_page_preview=True)
 		return
 
 
-@app.on_message(Filters.user("self") & Filters.command(["ytmusic", "ytaudio"], Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command(["ytmusic", "ytaudio"], Command))
 async def youtube_music(_client, message):
 	args = message.text.split(None, 1)
 	if len(args) == 1:
-		await message.edit("Send URL here!")
+		await msg(message, text="Send URL here!")
 		return
 	teks = args[1]
 	try:
 		video = pafy.new(teks)
 	except ValueError:
-		await message.edit("Invaild URL!")
+		await msg(message, text="Invaild URL!")
 		return
 	try:
 		audios = [audio for audio in video.audiostreams]
@@ -104,7 +105,7 @@ async def youtube_music(_client, message):
 		musictitle = re.sub(r'[\\/*?:"<>|\[\]]', "", str(music.title))
 		musicdate = video._ydl_info['upload_date'][:4]
 		titletext = "**Downloading music...**\n"
-		await message.edit(titletext + text, disable_web_page_preview=False)
+		await msg(message, text=titletext + text, disable_web_page_preview=False)
 		r = requests.get(f"https://i.ytimg.com/vi/{video.videoid}/maxresdefault.jpg", stream=True)
 		if r.status_code != 200:
 			r = requests.get(f"https://i.ytimg.com/vi/{video.videoid}/hqdefault.jpg", stream=True)
@@ -130,14 +131,14 @@ async def youtube_music(_client, message):
 		else:
 			download = await download_url(music.url, origtitle)
 		if download == "Failed to download file\nInvaild file name!":
-			return await message.edit(download)
+			return await msg(message, text=download)
 		titletext = "**Converting music...**\n"
-		await message.edit(titletext + text, disable_web_page_preview=False)
+		await msg(message, text=titletext + text, disable_web_page_preview=False)
 		try:
 			subprocess.Popen("ffmpeg", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		except Exception as err:
 			if "The system cannot find the file specified" in str(err) or "No such file or directory" in str(err):
-				await message.edit("You need to install ffmpeg first!\nCheck your assistant for more information!")
+				await msg(message, text="You need to install ffmpeg first!\nCheck your assistant for more information!")
 				await setbot.send_message(message.from_user.id,
 										"Hello 🙂\nYou need to install ffmpeg to make audio works better, here is guide how to install it:\n\n**If you're using linux**, go to your terminal, type:\n`sudo apt install ffmpeg`\n\n**If you're using Windows**, download ffmpeg here:\n`https://ffmpeg.zeranoe.com/builds/`\nAnd then extract (if was archive), and place ffmpeg.exe to workdir (in current dir)\n\n**If you're using heroku**, type this in your workdir:\n`heroku buildpacks:add https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git`\nOr if you not using heroku term, follow this guide:\n1. Go to heroku.com\n2. Go to your app in heroku\n3. Change tabs/click Settings, then search for Buildpacks text\n4. Click button Add build pack, then type `https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest`\n5. Click Save changes, and you need to rebuild your heroku app to take changes!\n\nNeed help?\nGo @nanabotsupport and ask there")
 				return
@@ -152,7 +153,7 @@ async def youtube_music(_client, message):
 		except FileNotFoundError:
 			pass
 		titletext = "**Uploading...**\n"
-		await message.edit(titletext + text, disable_web_page_preview=False)
+		await msg(message, text=titletext + text, disable_web_page_preview=False)
 		getprev = requests.get(video.thumb, stream=True)
 		with open("nana/cache/prev.jpg", "wb") as stk:
 			shutil.copyfileobj(getprev.raw, stk)
@@ -169,10 +170,10 @@ async def youtube_music(_client, message):
 		except FileNotFoundError:
 			pass
 		titletext = "**Done! 🤗**\n"
-		await message.edit(titletext + text, disable_web_page_preview=False)
+		await msg(message, text=titletext + text, disable_web_page_preview=False)
 	except Exception as err:
 		if "command not found" in str(err) or "is not recognized" in str(err):
-			await message.edit("You need to install ffmpeg first!\nCheck your assistant for more information!")
+			await msg(message, text="You need to install ffmpeg first!\nCheck your assistant for more information!")
 			await setbot.send_message(message.from_user.id,
 									"Hello 🙂\nYou need to install ffmpeg to make audio works better, here is guide "
 									"how to install it:\n\n**If you're using linux**, go to your terminal, "
@@ -190,7 +191,7 @@ async def youtube_music(_client, message):
 			return
 		exc_type, exc_obj, exc_tb = sys.exc_info()
 		errors = traceback.format_exception(etype=exc_type, value=exc_obj, tb=exc_tb)
-		await message.edit("**An error has accured!**\nCheck your assistant for more information!")
+		await msg(message, text="**An error has accured!**\nCheck your assistant for more information!")
 		button = InlineKeyboardMarkup([[InlineKeyboardButton("🐞 Report bugs", callback_data="report_errors")]])
 		await setbot.send_message(message.from_user.id, "**An error has accured!**\n```{}```".format("".join(errors)),
 								reply_markup=button)

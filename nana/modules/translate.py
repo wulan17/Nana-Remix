@@ -1,7 +1,8 @@
 from googletrans import Translator
 from pyrogram import Filters
 
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 trl = Translator()
 
@@ -18,11 +19,11 @@ Reply a message to translate that.
 * = Not used when reply a message!
 """
 
-@app.on_message(Filters.me & Filters.command("tr", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("tr", Command))
 async def translate(_client, message):
     if message.reply_to_message and (message.reply_to_message.text or message.reply_to_message.caption):
         if len(message.text.split()) == 1:
-            await message.edit("Usage: Reply to a message, then `tr <lang>`")
+            await msg(message, text="Usage: Reply to a message, then `tr <lang>`")
             return
         target = message.text.split()[1]
         if message.reply_to_message.text:
@@ -33,11 +34,11 @@ async def translate(_client, message):
         try:
             tekstr = trl.translate(text, dest=target)
         except ValueError as err:
-            await message.edit(f"Error: `{str(err)}`")
+            await msg(message, text=f"Error: `{str(err)}`")
             return
     else:
         if len(message.text.split()) <= 2:
-            await message.edit("Usage: `tr <lang> <text>`")
+            await msg(message, text="Usage: `tr <lang> <text>`")
             return
         target = message.text.split(None, 2)[1]
         text = message.text.split(None, 2)[2]
@@ -45,7 +46,7 @@ async def translate(_client, message):
         try:
             tekstr = trl.translate(text, dest=target)
         except ValueError as err:
-            await message.edit("Error: `{}`".format(str(err)))
+            await msg(message, text="Error: `{}`".format(str(err)))
             return
 
-    await message.edit(f"Translated from `{detectlang.lang}` to `{target}`:\n```{tekstr.text}```")
+    await msg(message, text=f"Translated from `{detectlang.lang}` to `{target}`:\n```{tekstr.text}```")

@@ -12,8 +12,10 @@ from pyrogram.errors import (
     FloodWait,
 )
 
-from nana import app, Command
+from nana import app, Command, AdminSettings
 from nana.helpers.admincheck import admin_check, is_sudoadmin
+from nana.helpers.PyroHelpers import msg
+
 
 __MODULE__ = "Admin"
 __HELP__ = """
@@ -23,7 +25,7 @@ Module for Group Admins
 -> `lock` or `unlock`
 locks and unlocks permission in the group
 __Supported Locks / Unlocks__:
- `msg` `media` `stickers`
+ `messages` `media` `stickers`
  `polls` `info` `invite`
  `animations` `games`
  `inlinebots` `webprev`
@@ -96,7 +98,7 @@ unmute_permissions = ChatPermissions(
 )
 
 
-@app.on_message(Filters.me & Filters.command("invite", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("invite", Command))
 async def invite_link(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -105,18 +107,15 @@ async def invite_link(client, message):
         if can_invite:
             try:
                 link = await client.export_chat_invite_link(chat_id)
-                await message.edit(
-                    f"**Generated Invite link for {chat_name}:**\n - **Join Link:** {link}",
-                    disable_web_page_preview=True,
-                )
+                await msg(message, text=f"**Generated Invite link for {chat_name}:**\n - **Join Link:** {link}")
             except Exception as e:
                 print(e)
-                await message.edit("`permission denied`")
+                await msg(message, text="`permission denied`")
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("pin", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("pin", Command))
 async def pin_message(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -137,26 +136,25 @@ async def pin_message(client, message):
                         message.reply_to_message.message_id,
                         disable_notification=disable_notification,
                     )
-                    await message.edit(
-                        f"**Message Pinned**\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
+                    text = f"**Message Pinned**\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
                 else:
-                    await message.edit("`Reply to a message to pin`")
+                    await msg(message, text="`Reply to a message to pin`")
                     await asyncio.sleep(5)
                     await message.delete()
             except Exception as e:
-                await message.edit("`Error!`\n" f"**Log:** `{e}`")
+                await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
                 return
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("mute", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("mute", Command))
 async def mute_hammer(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -178,40 +176,38 @@ async def mute_hammer(client, message):
                             permissions=mute_permission,
                             until_date=int(time.time() + 86400),
                         )
-                        await message.edit(
-                            f"**Muted for 24 hours**\n"
-                            f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                            f"(`{get_mem.user.id}`)\n"
-                            f"Chat: `{get_group.title}` (`{chat_id}`)"
-                        )
+                        text = f"**Muted for 24 hours**\n"
+                        text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
+                        text += f"(`{get_mem.user.id}`)\n"
+                        text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                        await msg(message, text=text)
                     else:
                         await client.restrict_chat_member(
                             chat_id=message.chat.id,
                             user_id=message.reply_to_message.from_user.id,
                             permissions=mute_permission,
                         )
-                        await message.edit(
-                            f"**Muted Indefinitely**\n"
-                            f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                            f"(`{get_mem.user.id}`)\n"
-                            f"Chat: `{get_group.title}` (`{chat_id}`)"
-                        )
+                        text = f"**Muted Indefinitely**\n"
+                        text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
+                        text += f"(`{get_mem.user.id}`)\n"
+                        text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                        await msg(message, text=text)
                 except Exception as e:
-                    await message.edit("`Error!`\n" f"**Log:** `{e}`")
+                    await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
                     return
             else:
-                await message.edit("`Reply to a user to mute them`")
+                await msg(message, text="`Reply to a user to mute them`")
                 await asyncio.sleep(5)
                 await message.delete()
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("unmute", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("unmute", Command))
 async def unmute(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -228,28 +224,28 @@ async def unmute(client, message):
                         user_id=message.reply_to_message.from_user.id,
                         permissions=unmute_permissions,
                     )
-                    await message.edit(
-                        f"**Unmuted**\n"
-                        f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        f"(`{get_mem.user.id}`)\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
+                    text = f"**Unmuted**\n"
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
+
                 else:
-                    await message.edit("`Reply to a user to mute them`")
+                    await msg(message, text="`Reply to a user to mute them`")
                     await asyncio.sleep(5)
                     await message.delete()
             except Exception as e:
-                await message.edit("`Error!`\n" f"**Log:** `{e}`")
+                await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
                 return
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("kick", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("kick", Command))
 async def kick_user(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -265,38 +261,37 @@ async def kick_user(client, message):
                     await client.kick_chat_member(
                         chat_id, get_mem.user.id, int(time.time() + 45)
                     )
-                    await message.edit(
-                        f"**Kicked**\n"
-                        f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        f"(`{get_mem.user.id}`)\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
+                    text = f"**Kicked**\n"
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
 
                 except ChatAdminRequired:
-                    await message.edit("`permission denied`")
+                    await msg(message, text="`permission denied`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except Exception as e:
-                    await message.edit("`Error!`\n" f"**Log:** `{e}`")
+                    await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
                     return
 
             else:
-                await message.edit("`Reply to a user to kick`")
+                await msg(message, text="`Reply to a user to kick`")
                 await asyncio.sleep(5)
                 await message.delete()
                 return
 
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("ban", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("ban", Command))
 async def ban_usr(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -307,7 +302,7 @@ async def ban_usr(client, message):
             if message.reply_to_message:
                 user_id = message.reply_to_message.from_user.id
             else:
-                await message.edit("`reply to a user to ban.`")
+                await msg(message, text="`reply to a user to ban.`")
                 await asyncio.sleep(5)
                 await message.delete()
 
@@ -315,43 +310,42 @@ async def ban_usr(client, message):
                 try:
                     get_mem = await client.get_chat_member(chat_id, user_id)
                     await client.kick_chat_member(chat_id, user_id)
-                    await message.edit(
-                        f"**Banned**\n"
-                        f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        f"(`{get_mem.user.id}`)\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
+                    text = f"**Banned**\n"
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
 
                 except UsernameInvalid:
-                    await message.edit("`invalid username`")
+                    await msg(message, text="`invalid username`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except PeerIdInvalid:
-                    await message.edit("`invalid username or userid`")
+                    await msg(message, text="`invalid username or userid`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except UserIdInvalid:
-                    await message.edit("`invalid userid`")
+                    await msg(message, text="`invalid userid`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except ChatAdminRequired:
-                    await message.edit("`permission denied`")
+                    await msg(message, text="`permission denied`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except Exception as e:
-                    await message.edit(f"**Log:** `{e}`")
+                    await msg(message, text=f"**Log:** `{e}`")
                     return
 
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
             return
@@ -359,7 +353,7 @@ async def ban_usr(client, message):
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("unban", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("unban", Command))
 async def unban_usr(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -372,31 +366,30 @@ async def unban_usr(client, message):
                         chat_id, message.reply_to_message.from_user.id
                     )
                     await client.unban_chat_member(chat_id, get_mem.user.id)
-                    await message.edit(
-                        f"**Unbanned**\n"
-                        f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        f"(`{get_mem.user.id}`)\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
+                    text = f"**Unbanned**\n"
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
 
                 except Exception as e:
-                    await message.edit(f"**Log:** `{e}`")
+                    await msg(message, text=f"**Log:** `{e}`")
                     return
 
             else:
-                await message.edit("`Reply to a user to unban`")
+                await msg(message, text="`Reply to a user to unban`")
                 await asyncio.sleep(5)
                 await message.delete()
                 return
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("promote", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("promote", Command))
 async def promote_usr(client, message):
     if message.chat.type in ["group", "supergroup"]:
         cmd = message.command
@@ -416,7 +409,7 @@ async def promote_usr(client, message):
                 if len(custom_rank) > 15:
                     custom_rank = custom_rank[:15]
             else:
-                await message.edit("`reply to a user to promote`")
+                await msg(message, text="`reply to a user to promote`")
                 await asyncio.sleep(5)
                 await message.delete()
                 return
@@ -435,48 +428,46 @@ async def promote_usr(client, message):
 
                     await asyncio.sleep(2)
                     await client.set_administrator_title(chat_id, user_id, custom_rank)
-                    await message.edit(
-                        f"**Promoted**\n"
-                        f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        f"(`{get_mem.user.id}`)\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
-
+                    text = f"**Promoted**\n"
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
                 except UsernameInvalid:
-                    await message.edit("`invalid username`")
+                    await msg(message, text="`invalid username`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
                 except PeerIdInvalid:
-                    await message.edit("`invalid username or userid`")
+                    await msg(message, text="`invalid username or userid`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
                 except UserIdInvalid:
-                    await message.edit("`invalid userid`")
+                    await msg(message, text="`invalid userid`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except ChatAdminRequired:
-                    await message.edit("`permission denied`")
+                    await msg(message, text="`permission denied`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except Exception as e:
-                    await message.edit(f"**Log:** `{e}`")
+                    await msg(message, text=f"**Log:** `{e}`")
                     return
 
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
             await asyncio.sleep(5)
             await message.delete()
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("demote", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("demote", Command))
 async def demote_usr(client, message):
     if message.chat.type in ["group", "supergroup"]:
         chat_id = message.chat.id
@@ -499,32 +490,32 @@ async def demote_usr(client, message):
                         can_pin_messages=False,
                     )
 
-                    await message.edit(
-                        f"**Demoted**\n"
-                        f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        f"(`{get_mem.user.id}`)\n"
-                        f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    )
+
+                    text = f"**Demoted**\n"
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
                 except ChatAdminRequired:
-                    await message.edit("`permission denied`")
+                    await msg(message, text="`permission denied`")
                     await asyncio.sleep(5)
                     await message.delete()
                     return
 
                 except Exception as e:
-                    await message.edit(f"**Log:** `{e}`")
+                    await msg(message, text=f"**Log:** `{e}`")
                     return
 
             if not message.reply_to_message:
-                await message.edit("`reply to a user to demote.`")
+                await msg(message, text="`reply to a user to demote.`")
                 return
         else:
-            await message.edit("``permission denied`")
+            await msg(message, text="``permission denied`")
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("lock", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("lock", Command))
 async def lock_permission(client, message):
     """module that locks group permissions"""
     if message.chat.type in ["group", "supergroup"]:
@@ -533,7 +524,7 @@ async def lock_permission(client, message):
         if not is_admin:
             await message.delete()
             return
-        msg = ""
+        messages = ""
         media = ""
         stickers = ""
         animations = ""
@@ -548,14 +539,14 @@ async def lock_permission(client, message):
         lock_type = " ".join(cmd[1:])
         chat_id = message.chat.id
         if not lock_type:
-            await message.edit("`can't lock the void`")
-            await asyncio.sleep(5)
+            await msg(message, text="`Cant lock the void")
+            await asyncio.sleep(3)
             await message.delete()
             return
 
         get_perm = await client.get_chat(chat_id)
 
-        msg = get_perm.permissions.can_send_messages
+        messages = get_perm.permissions.can_send_messages
         media = get_perm.permissions.can_send_media_messages
         stickers = get_perm.permissions.can_send_stickers
         animations = get_perm.permissions.can_send_animations
@@ -570,17 +561,16 @@ async def lock_permission(client, message):
         if lock_type == "all":
             try:
                 await client.set_chat_permissions(chat_id, ChatPermissions())
-                await message.edit("`Locked all permission from this Chat!`")
+                await msg(message, text="`Locked all permission from this Chat!`")
                 await asyncio.sleep(5)
                 await message.delete()
 
             except Exception as e:
-                await message.edit(text="`permission denied`\n" f"**Log:** `{e}`")
-
+                await msg(message, text="`permission denied`\n" f"**Log:** `{e}`")
             return
 
-        if lock_type == "msg":
-            msg = False
+        if lock_type == "messages":
+            messages = False
             perm = "messages"
 
         elif lock_type == "media":
@@ -624,9 +614,8 @@ async def lock_permission(client, message):
             perm = "pin"
 
         else:
-            await message.edit("`Invalid Lock Type!`")
-            await asyncio.sleep(5)
-            await message.delete()
+            print(e)
+            await msg(message, text="Something Happened Please Check logs.")
             return
 
         try:
@@ -647,17 +636,19 @@ async def lock_permission(client, message):
                 ),
             )
 
-            await message.edit(text=f"`Locked {perm} for this chat!`")
+            await msg(message, text=f"`Locked {perm} for this chat!`")
             await asyncio.sleep(5)
             await message.delete()
 
         except Exception as e:
-            await message.edit("`Error!`\n" f"**Log:** `{e}`")
+            print(e)
+            await msg(message, text="Something Happened Please Check logs.")
+            return
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("unlock", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("unlock", Command))
 async def unlock_permission(client, message):
     """this module unlocks group permission for admins"""
     if message.chat.type in ["group", "supergroup"]:
@@ -684,7 +675,7 @@ async def unlock_permission(client, message):
         chat_id = message.chat.id
 
         if not unlock_type:
-            await message.edit("`can't unlock the void`")
+            await msg(message, text="`can't unlock the void`")
             await asyncio.sleep(5)
             await message.delete()
             return
@@ -721,13 +712,12 @@ async def unlock_permission(client, message):
                         can_add_web_page_previews=True,
                     ),
                 )
-
-                await message.edit("`Unlocked all permission from this Chat!`")
+                await msg(message, text="`Unlocked all permission from this Chat!`")
                 await asyncio.sleep(5)
                 await message.delete()
 
             except Exception as e:
-                await message.edit("`permission denied`\n" f"**Log:** `{e}`")
+                await msg(message, text="`permission denied`\n" f"**Log:** `{e}`")
             return
 
         if unlock_type == "msg":
@@ -775,7 +765,7 @@ async def unlock_permission(client, message):
             uperm = "pin"
 
         else:
-            await message.edit("`Invalid Unlock Type!`")
+            await msg(message, text="`Invalid Unlock Type!`")
             await asyncio.sleep(5)
             await message.delete()
             return
@@ -797,26 +787,20 @@ async def unlock_permission(client, message):
                     can_pin_messages=upin,
                 ),
             )
-
-            await message.edit(f"`Unlocked {uperm} for this chat!`")
+            await msg(message, text=f"`Unlocked {uperm} for this chat!`")
             await asyncio.sleep(5)
             await message.delete()
 
         except Exception as e:
-            await message.edit("`Error!`\n" f"**Log:** `{e}`")
+            await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("vlock", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("vlock", Command))
 async def view_perm(client, message):
     """view group permission."""
     if message.chat.type in ["group", "supergroup"]:
-        is_admin = await admin_check(message)
-        if not is_admin:
-            await message.delete()
-            return
-
         v_perm = ""
         vmsg = ""
         vmedia = ""
@@ -865,16 +849,15 @@ async def view_perm(client, message):
                 permission_view_str += f"<b>Change Info:</b> {vinfo}\n"
                 permission_view_str += f"<b>Invite Users:</b> {vinvite}\n"
                 permission_view_str += f"<b>Pin Messages:</b> {vpin}\n"
-
-                await message.edit(permission_view_str)
+                await msg(message, text=permission_view_str)
 
             except Exception as e:
-                await message.edit(text="`Error!`\n" f"**Log:** `{e}`")
+                await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
     else:
         await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("delacc", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("delacc", Command))
 async def deleted_clean(client, message):
     cmd = message.command
     chat_id = message.chat.id
@@ -890,8 +873,7 @@ async def deleted_clean(client, message):
     if rm_delaccs:
 
         if can_clean:
-
-            await message.edit("`cleaning deleted accounts from this chat..`")
+            await msg(message, text="`cleaning deleted accounts from this chat..`")
             del_admins = 0
             del_total = 0
             async for member in client.iter_chat_members(chat_id):
@@ -913,7 +895,7 @@ async def deleted_clean(client, message):
                     del_total += 1
 
             del_stats = f"`Found` **{del_total}** `total accounts..`"
-            await message.edit(del_stats)
+            await msg(message, text=del_stats)
             await message.edit(
                 f"**Cleaned Deleted accounts**:\n"
                 f"Total Deleted Accounts: `{del_total}`\n"
@@ -922,7 +904,7 @@ async def deleted_clean(client, message):
             )
 
         else:
-            await message.edit("`permission denied`")
+            await msg(message, text="`permission denied`")
 
     else:
 
@@ -931,4 +913,4 @@ async def deleted_clean(client, message):
                 del_users += 1
         if del_users > 0:
             del_stats = f"`Found` **{del_users}** `deleted accounts in this chat.`"
-        await message.edit(del_stats)
+        await msg(message, text=del_stats)

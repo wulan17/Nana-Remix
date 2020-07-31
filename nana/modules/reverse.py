@@ -12,8 +12,9 @@ import asyncio
 
 from pyrogram import Filters
 
-from nana import app, Command, logging
+from nana import app, Command, logging, AdminSettings
 from nana.helpers.PyroHelpers import ReplyCheck
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Reverse"
 __HELP__ = """
@@ -58,7 +59,7 @@ async def take_screen_shot(video_file: str, duration: int, path: str = '') -> Op
     return thumb_image_path if os.path.exists(thumb_image_path) else None
 
 
-@app.on_message(Filters.me & Filters.command("reverse", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("reverse", Command))
 async def google_rs(client, message):
     start = datetime.now()
     dis_loc = ''
@@ -75,11 +76,11 @@ async def google_rs(client, message):
             )
             dis_loc = os.path.join(screen_shot, os.path.basename(dis))
         if message_.animation or message_.video:
-            await message.edit("`Converting this Gif`")
+            await msg(message, text="`Converting this Gif`")
             img_file = os.path.join(screen_shot, "grs.jpg")
             await take_screen_shot(dis_loc, 0, img_file)
             if not os.path.lexists(img_file):
-                await message.edit("`Something went wrong in Conversion`")
+                await msg(message, text="`Something went wrong in Conversion`")
                 await asyncio.sleep(5)
                 await message.delete()
                 return
@@ -97,7 +98,7 @@ async def google_rs(client, message):
         else:
             await message.delete()
             return
-        await message.edit("`Found Google Result.`")
+        await msg(message, text="`Found Google Result.`")
         headers = {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:58.0) Gecko/20100101 Firefox/58.0"
         }
@@ -113,10 +114,10 @@ async def google_rs(client, message):
 <b>Possible Related Search</b>: <a href="{prs_url}">{prs_text}</a>
 <b>More Info</b>: Open this <a href="{the_location}">Link</a>
 """
-    await message.edit(out_str, parse_mode="HTML", disable_web_page_preview=True)
+    await msg(message, text=out_str, parse_mode="HTML", disable_web_page_preview=True)
 
 
-@app.on_message(Filters.me & Filters.command("areverse", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("areverse", Command))
 async def tracemoe_rs(client, message):
     dis_loc = ''
     if message.reply_to_message:
@@ -131,11 +132,11 @@ async def tracemoe_rs(client, message):
             )
             dis_loc = os.path.join(screen_shot, os.path.basename(dis))
         if message_.animation:
-            await message.edit("`Converting this Gif`")
+            await msg(message, text="`Converting this Gif`")
             img_file = os.path.join(screen_shot, "grs.jpg")
             await take_screen_shot(dis_loc, 0, img_file)
             if not os.path.lexists(img_file):
-                await message.edit("`Something went wrong in Conversion`")
+                await msg(message, text="`Something went wrong in Conversion`")
                 await asyncio.sleep(5)
                 await message.delete()
                 return
@@ -147,7 +148,7 @@ async def tracemoe_rs(client, message):
             img_file = os.path.join(screen_shot, "grs.jpg")
             await take_screen_shot(dis_loc, 0, img_file)
             if not os.path.lexists(img_file):
-                await message.edit("`Something went wrong in Conversion`")
+                await msg(message, text="`Something went wrong in Conversion`")
                 await asyncio.sleep(5)
                 await message.delete()
                 return
@@ -160,7 +161,7 @@ async def tracemoe_rs(client, message):
                 search = await tracemoe.search(dis_loc, encode=True)
             os.remove(dis_loc)
             result = search['docs'][0]
-            msg = f"**Title**: {result['title_english']}" \
+            ms_g = f"**Title**: {result['title_english']}" \
                   f"\n**Similarity**: {result['similarity']*100}"\
                   f"\n**Episode**: {result['episode']}"
             preview = await tracemoe.video_preview(search)
@@ -169,7 +170,7 @@ async def tracemoe_rs(client, message):
             await message.delete()
             await client.send_video(message.chat.id,
                                     'preview.mp4',
-                                    caption=msg,
+                                    caption=ms_g,
                                     reply_to_message_id=ReplyCheck(message)
                                     )
             await asyncio.sleep(5)
@@ -179,7 +180,7 @@ async def tracemoe_rs(client, message):
             await message.delete()
             return
     else:
-        await message.edit("`Reply to a message to proceed`")
+        await msg(message, text="`Reply to a message to proceed`")
         await asyncio.sleep(5)
         await message.delete()
         return

@@ -4,6 +4,7 @@ from pyrogram import Filters
 
 from nana import app, Command
 from nana.helpers.parser import mention_html, mention_markdown
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Admin List"
 __HELP__ = """
@@ -84,7 +85,7 @@ async def adminlist(client, message):
     if toolong:
         await message.reply(message.chat.id, teks, reply_to_message_id=replyid)
     else:
-        await message.edit(teks)
+        await msg(message, text=teks)
 
 
 @app.on_message(Filters.me & Filters.command(["reportadmin", "reportadmins"], Command))
@@ -121,7 +122,7 @@ async def report_admin(client, message):
 
 @app.on_message(Filters.me & Filters.command("tagall", Command))
 async def tag_all_users(client, message):
-    await message.edit('`tagging everyone...`')
+    await msg(message, text='`tagging everyone...`')
     if len(message.text.split()) >= 2:
         text = message.text.split(None, 1)[1]
     else:
@@ -167,4 +168,5 @@ async def get_list_bots(client, message):
     if replyid:
         await client.send_message(message.chat.id, teks, reply_to_message_id=replyid)
     else:
-        await message.edit(teks)
+        await msg(message, text=teks)
+

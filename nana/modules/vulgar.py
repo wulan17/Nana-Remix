@@ -3,7 +3,8 @@ import re
 from asyncio import sleep
 from pyrogram import Filters
 from pyrogram.errors import MessageNotModified
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Vulgar"
 __HELP__ = """
@@ -50,14 +51,14 @@ async def vulgar_f(_client, message):
         return
 
 
-@app.on_message(Filters.me & Filters.command("vulgar", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("vulgar", Command))
 async def vulgar_trigger(_client, message):
     global vulgar_filter
     if vulgar_filter:
         vulgar_filter = False
-        await message.edit("Message will not be filtered")
+        await msg(message, text="Message will not be filtered")
     else:
         vulgar_filter = True
-        await message.edit("Message will be filtered")
+        await msg(message, text="Message will be filtered")
     await sleep(5)
     await message.delete()

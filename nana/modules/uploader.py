@@ -4,7 +4,8 @@ import shutil
 import requests
 from pyrogram import Filters
 
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Uploader"
 __HELP__ = """
@@ -20,10 +21,10 @@ Upload image and convert to sticker, please note image from telegraph will resul
 """
 
 
-@app.on_message(Filters.me & Filters.command("pic", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("pic", Command))
 async def PictureUploader(client, message):
     if len(message.text.split()) == 1:
-        await message.edit("Usage: `.pic <url>`")
+        await msg(message, text="Usage: `.pic <url>`")
         return
     photo = message.text.split(None, 1)[1]
     await message.delete()
@@ -45,10 +46,10 @@ async def PictureUploader(client, message):
             await client.send_photo(message.chat.id, photo, "")
 
 
-@app.on_message(Filters.me & Filters.command("stk", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("stk", Command))
 async def StickerUploader(client, message):
     if len(message.text.split()) == 1:
-        await message.edit("Usage: `.stk <url>`")
+        await msg(message, text="Usage: `.stk <url>`")
         return
     photo = message.text.split(None, 1)[1]
     await message.delete()

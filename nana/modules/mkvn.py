@@ -5,10 +5,11 @@ from asyncio import sleep
 import subprocess
 import os
 
-from nana import setbot, app, Command, Owner
+from nana import setbot, app, Command, Owner, AdminSettings
 from pyrogram import Filters
 from nana.modules.downloads import download_reply_nocall
 from nana.helpers.PyroHelpers import ReplyCheck
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Video Note"
 __HELP__ = """
@@ -37,17 +38,17 @@ Or if you not using heroku term, follow this guide:
 '''
 
 
-@app.on_message(Filters.me & Filters.command("mkvn", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("mkvn", Command))
 async def vn_maker(client, message):
 	if message.reply_to_message and message.reply_to_message.video:
 		dlvid = await download_reply_nocall(client, message)
 		if dlvid:
-			await message.edit("__Converting...__")
+			await msg(message, text="__Converting...__")
 			try:
 				subprocess.Popen("ffmpeg", stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			except Exception as err:
 				if "The system cannot find the file specified" in str(err) or "No such file or directory" in str(err):
-					await message.edit("an error occured! check assistant for more details")
+					await msg(message, text="an error occured! check assistant for more details")
 					await sleep(5)
 					await message.delete()
 					await setbot.send_message(

@@ -13,7 +13,8 @@ from bs4 import BeautifulSoup
 from pyDownload import Downloader
 from pyrogram import Filters
 
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Downloads"
 __HELP__ = """
@@ -47,7 +48,7 @@ androidfilehost.com`
 """
 
 
-@app.on_message(Filters.me & Filters.command("ls", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("ls", Command))
 async def ls(_client, message):
     args = message.text.split(None, 1)
     basepath = "nana/{}".format(args[1]) if len(args) == 2 else "nana/"
@@ -59,14 +60,14 @@ async def ls(_client, message):
     for entry in os.listdir(basepath):
         if os.path.isfile(os.path.join(basepath, entry)):
             listfile += "\n{}".format(entry)
-    await message.edit("**List directory :**`{}`\n**List file :**`{}`".format(directory, listfile))
+    await msg(message, text="**List directory :**`{}`\n**List file :**`{}`".format(directory, listfile))
 
 
-@app.on_message(Filters.me & Filters.command("upload", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("upload", Command))
 async def upload_file(client, message):
     args = message.text.split(None, 1)
     if len(args) == 1:
-        await message.edit("usage : upload (path)")
+        await msg(message, text="usage : upload (path)")
         return
     path = "nana/{}".format(args[1])
     try:
@@ -75,9 +76,9 @@ async def upload_file(client, message):
     except Exception as e:
         logging.error("Exception occured", exc_info=True)
         logging.error(e)
-        await message.edit("`File not found!`")
+        await msg(message, text="`File not found!`")
         return
-    await message.edit("`Success!`")
+    await msg(message, text="`Success!`")
     await asyncio.sleep(5)
     await client.delete_messages(message.chat.id, message.message_id)
 
@@ -135,10 +136,10 @@ async def download_url(url, file_name):
     return downlaoded
 
 
-@app.on_message(Filters.me & Filters.command("dl", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("dl", Command))
 async def download_from_url(_client, message):
     if len(message.text.split()) == 1:
-        await message.edit("Usage: `dl <url> <filename>`")
+        await msg(message, text="Usage: `dl <url> <filename>`")
         return
     if len(message.text.split()) == 2:
         url = message.text.split(None, 1)[1]
@@ -147,39 +148,39 @@ async def download_from_url(_client, message):
         url = message.text.split(None, 2)[1]
         file_name = message.text.split(None, 2)[2]
     else:
-        await message.edit("Invaild args given!")
+        await msg(message, text="Invaild args given!")
         return
     try:
         os.listdir("nana/downloads/")
     except FileNotFoundError:
-        await message.edit("Invalid download path in config!")
+        await msg(message, text="Invalid download path in config!")
         return
-    await message.edit("Downloading...")
+    await msg(message, text="Downloading...")
     download = await download_url(url, file_name)
-    await message.edit(download)
+    await msg(message, text=download)
 
 
-@app.on_message(Filters.me & Filters.command("download", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("download", Command))
 async def dssownload_from_telegram(client, message):
     if message.reply_to_message:
         await download_file_from_tg(client, message)
     else:
-        await message.edit("Reply document to download it")
+        await msg(message, text="Reply document to download it")
 
 
-@app.on_message(Filters.me & Filters.command("direct", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("direct", Command))
 async def direct_link_generator(_client, message):
     args = message.text.split(None, 1)
-    await message.edit("`Processing...`")
+    await msg(message, text="`Processing...`")
     if len(args) == 1:
-        await message.edit("Write any args here!")
+        await msg(message, text="Write any args here!")
         return
     downloadurl = args[1]
     reply = ''
     links = re.findall(r'\bhttps?://.*\.\S+', downloadurl)
     if not links:
         reply = "`No links found!`"
-        await message.edit(reply)
+        await msg(message, text=reply)
     for link in links:
         if 'drive.google.com' in link:
             reply += gdrive(link)
@@ -200,7 +201,7 @@ async def direct_link_generator(_client, message):
         else:
             reply += re.findall(r"\bhttps?://(.*?[^/]+)",
                                 link)[0] + 'is not supported'
-    await message.edit(reply)
+    await msg(message, text=reply)
 
 
 def gdrive(url: str) -> str:
@@ -518,7 +519,7 @@ async def download_reply_nocall(client, message):
 
 
 async def download_file_from_tg(client, message):
-    await message.edit("__Downloading...__")
+    await msg(message, text="__Downloading...__")
     start = int(time.time())
     c_time = time.time()
     name = await name_file(client, message)
@@ -551,12 +552,12 @@ async def download_file_from_tg(client, message):
                                     progress=lambda d, t: asyncio.get_event_loop().create_task(
                                         progressdl(d, t, message, c_time, "Downloading...")))
     else:
-        await message.edit("Unknown file!")
+        await msg(message, text="Unknown file!")
         return
     end = int(time.time())
     times = await time_parser(start, end)
     text = f"**⬇ Downloaded!**\n🗂 File name: `{name}`\n🏷 Saved to: `nana/downloads/`\n⏲ Downloaded in: {times}"
-    await message.edit(text)
+    await msg(message, text=text)
 
 
 async def name_file(_client, message):
@@ -579,5 +580,5 @@ async def name_file(_client, message):
     elif message.reply_to_message.document:
         return "{}".format(message.reply_to_message.document.file_name)
     else:
-        await message.edit("Unknown file!")
+        await msg(message, text="Unknown file!")
         return

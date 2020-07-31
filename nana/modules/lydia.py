@@ -6,8 +6,9 @@ from coffeehouse.lydia import LydiaAI
 from coffeehouse.exception import CoffeeHouseError as CFError
 from pyrogram import Filters
 
-from nana import lydia_api, app, Command, setbot, Owner, OwnerUsername
+from nana import lydia_api, app, Command, setbot, Owner, OwnerUsername, AdminSettings
 import nana.modules.database.lydia_db as sql
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Chatbot"
 __HELP__ = """
@@ -27,7 +28,7 @@ CoffeeHouseAPI = API(lydia_api)
 api_client = LydiaAI(CoffeeHouseAPI)
 
 
-@app.on_message(Filters.me & Filters.command("addchat", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("addchat", Command))
 async def add_chat(_client, message):
     global api_client
     chat_id = message.chat.id
@@ -37,29 +38,29 @@ async def add_chat(_client, message):
         ses_id = str(ses.id)
         expires = str(ses.expires)
         sql.set_ses(chat_id, ses_id, expires)
-        await message.edit("`AI successfully enabled for this chat!`")
+        await msg(message, text="`AI successfully enabled for this chat!`")
     else:
-        await message.edit("`AI is already enabled for this chat!`")
+        await msg(message, text="`AI is already enabled for this chat!`")
 
     await asyncio.sleep(5)
     await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("rmchat", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("rmchat", Command))
 async def remove_chat(_client, message):
     chat_id = message.chat.id
     is_chat = sql.is_chat(chat_id)
     if not is_chat:
-        await message.edit("`AI isn't enabled here in the first place!`")
+        await msg(message, text="`AI isn't enabled here in the first place!`")
     else:
         sql.rem_chat(chat_id)
-        await message.edit("`AI disabled successfully!`")
+        await msg(message, text="`AI disabled successfully!`")
 
     await asyncio.sleep(5)
     await message.delete()
 
 
-@app.on_message(~Filters.me & ~Filters.edited & (Filters.group | Filters.private), group=6)
+@app.on_message(~Filters.user(AdminSettings) & ~Filters.edited & (Filters.group | Filters.private), group=6)
 async def chat_bot(client, message):
     global api_client
     chat_id = message.chat.id

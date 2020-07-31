@@ -4,7 +4,8 @@ import shutil
 import requests
 from pyrogram import Filters
 
-from nana import app, Command, thumbnail_API, screenshotlayer_API
+from nana import app, Command, thumbnail_API, screenshotlayer_API, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "SS Website"
 __HELP__ = """
@@ -22,15 +23,15 @@ Take screenshot of that website, if `full` args given, take full of website and 
 """
 
 
-@app.on_message(Filters.me & Filters.command("print", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("print", Command))
 async def print_web(client, message):
     if len(message.text.split()) == 1:
-        await message.edit("Usage: `print web.url`")
+        await msg(message, text="Usage: `print web.url`")
         return
     if not thumbnail_API:
-        await message.edit("You need to fill thumbnail_API to use this!")
+        await msg(message, text="You need to fill thumbnail_API to use this!")
         return
-    await message.edit("Please wait...")
+    await msg(message, text="Please wait...")
     args = message.text.split(None, 1)
     teks = args[1]
     teks = teks if "http://" in teks or "https://" in teks else "http://" + teks
@@ -41,7 +42,7 @@ async def print_web(client, message):
                      stream=True
                      )
     if r.status_code != 200:
-        await message.edit(r.text, disable_web_page_preview=True)
+        await msg(message, text=r.text, disable_web_page_preview=True)
         return
     with open("nana/cache/web.png", "wb") as stk:
         shutil.copyfileobj(r.raw, stk)
@@ -49,18 +50,18 @@ async def print_web(client, message):
                             reply_to_message_id=message.message_id)
     os.remove("nana/cache/web.png")
     await client.send_chat_action(message.chat.id, action="cancel")
-    message.edit(capt)
+    msg(message, text=capt)
 
 
-@app.on_message(Filters.me & Filters.command("ss", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("ss", Command))
 async def ss_web(client, message):
     if len(message.text.split()) == 1:
-        await message.edit("Usage: `print web.url`")
+        await msg(message, text="Usage: `print web.url`")
         return
     if not screenshotlayer_API:
-        await message.edit("You need to fill screenshotlayer_API to use this!")
+        await msg(message, text="You need to fill screenshotlayer_API to use this!")
         return
-    await message.edit("Please wait...")
+    await msg(message, text="Please wait...")
     args = message.text.split(None, 1)
     teks = args[1]
     full = False
@@ -86,7 +87,7 @@ async def ss_web(client, message):
     try:
         catcherror = r.json()
         if not catcherror['success']:
-            await message.edit(r.json(), disable_web_page_preview=True)
+            await msg(message, text=r.json(), disable_web_page_preview=True)
             return
     except Exception as err:
         print(err)
@@ -99,4 +100,4 @@ async def ss_web(client, message):
                                )
     os.remove("nana/cache/web.png")
     await client.send_chat_action(message.chat.id, action="cancel")
-    await message.edit(capt)
+    await msg(message, text=capt)

@@ -3,7 +3,8 @@ from datetime import datetime
 from pytz import timezone
 from pyrogram import Filters
 
-from nana import app, Command, time_country
+from nana import app, Command, time_country, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Time"
 __HELP__ = """
@@ -17,7 +18,7 @@ Returns the Date and Time for a selected country
 """
 
 
-@app.on_message(Filters.me & Filters.command("time", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("time", Command))
 async def grabTime(client, message):
     if not time_country:
         await message.delete()
@@ -28,4 +29,4 @@ async def grabTime(client, message):
     militaryTime = tzDateTime.strftime('%H:%M')
     time = datetime.strptime(militaryTime, "%H:%M").strftime("%I:%M %p")
     time_string = '__Currently it is__' +f' **{time}** '+'__on__'+f' **{date}** '+'__in__ '+f'**{tz}**'
-    await message.edit(time_string)
+    await msg(message, text=time_string)

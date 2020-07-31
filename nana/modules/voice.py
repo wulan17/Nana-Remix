@@ -6,8 +6,9 @@ import asyncio
 
 from pyrogram import Filters
 
-from nana import app, Command, IBM_WATSON_CRED_URL, IBM_WATSON_CRED_PASSWORD
+from nana import app, Command, IBM_WATSON_CRED_URL, IBM_WATSON_CRED_PASSWORD, AdminSettings
 from nana.modules.downloads import download_reply_nocall
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "TTS / STT"
 __HELP__ = """
@@ -45,7 +46,7 @@ Reply to a voice message to output trascript
 lang = "en"  # Default Language for voice
 
 
-@app.on_message(Filters.me & Filters.command("tts", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("tts", Command))
 async def voice(client, message):
     global lang
     cmd = message.command
@@ -54,7 +55,7 @@ async def voice(client, message):
     elif message.reply_to_message and len(cmd) == 1:
         v_text = message.reply_to_message.text
     elif len(cmd) == 1:
-        await message.edit(
+        await msg(message, text=
             "Usage: `reply to a message or send text arg to convert to voice`"
         )
         await asyncio.sleep(2)
@@ -77,7 +78,7 @@ async def voice(client, message):
     os.remove("nana/cache/voice.mp3")
 
 
-@app.on_message(Filters.me & Filters.command("voicelang", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("voicelang", Command))
 async def voicelang(_client, message):
     global lang
     temp = lang
@@ -86,20 +87,20 @@ async def voicelang(_client, message):
         gTTS("tes", lang=lang)
     except Exception as e:
         print(e)
-        await message.edit("Wrong Language id !")
+        await msg(message, text="Wrong Language id !")
         lang = temp
         return
-    await message.edit("Language Set to {}".format(lang))
+    await msg(message, text="Language Set to {}".format(lang))
 
 
-@app.on_message(Filters.me & Filters.command("stt", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("stt", Command))
 async def speach_to_text(client, message):
     start = datetime.now()
     input_str = message.reply_to_message.voice
     if input_str:
         required_file_name = await download_reply_nocall(client, message)
         if IBM_WATSON_CRED_URL is None or IBM_WATSON_CRED_PASSWORD is None:
-            await message.edit("`no ibm watson key provided, aborting...`")
+            await msg(message, text="`no ibm watson key provided, aborting...`")
             await asyncio.sleep(3)
             await message.delete()
         else:
@@ -137,12 +138,12 @@ async def speach_to_text(client, message):
                                     """
                 else:
                     string_to_show = f"<pre>Time Taken<pre>: {ms} seconds\n<pre>No Results Found<pre>"
-                await message.edit(string_to_show, parse_mode='html')
+                await msg(message, text=string_to_show, parse_mode='html')
             else:
-                await message.edit(r["error"])
+                await msg(message, text=r["error"])
             # now, remove the temporary file
             os.remove(required_file_name)
     else:
-        await message.edit("`Reply to a voice message`")
+        await msg(message, text="`Reply to a voice message`")
         await asyncio.sleep(3)
         await message.delete()

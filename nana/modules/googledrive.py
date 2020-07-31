@@ -7,10 +7,11 @@ from bs4 import BeautifulSoup
 from pydrive.drive import GoogleDrive
 from pyrogram import Filters
 
-from nana import app, setbot, Command, gauth, gdrive_credentials, HEROKU_API
+from nana import app, setbot, Command, gauth, gdrive_credentials, HEROKU_API, AdminSettings
 from nana.helpers.parser import cleanhtml
 from nana.modules.downloads import download_url
 from .downloads import progressdl
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "GDrive"
 __HELP__ = """
@@ -65,21 +66,21 @@ async def get_driveinfo(driveid):
     return cleanhtml(str(getdrivename.find('title'))).split(" - ")[0]
 
 
-@app.on_message(Filters.me & Filters.command("credentials", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("credentials", Command))
 async def credentials(_client, message):
     args = message.text.split(None, 1)
     if len(args) == 1:
-        await message.edit("Write any args here!")
+        await msg(message, text="Write any args here!")
         return
     if len(args) == 2:
         file = open("client_secrets.json", "w")
         file.write(args[1])
         file.close()
-        await message.edit("credentials success saved on client_secrets")
+        await msg(message, text="credentials success saved on client_secrets")
         return
 
 
-@app.on_message(Filters.me & Filters.command("gdrive", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("gdrive", Command))
 async def gdrive_stuff(client, message):
     gauth.LoadCredentialsFile("nana/session/drive")
     if gauth.credentials is None:
@@ -87,7 +88,7 @@ async def gdrive_stuff(client, message):
             file = open("client_secrets.json", "w")
             file.write(gdrive_credentials)
             file.close()
-        await message.edit(
+        await msg(message, text=
             "You are not logged in to your google drive account!\nYour assistant bot may help you to login google "
             "drive, check your assistant bot for more information!")
         gdriveclient = os.path.isfile("client_secrets.json")
@@ -129,63 +130,60 @@ async def gdrive_stuff(client, message):
     drive_dir = await get_drivedir(drive)
 
     if len(message.text.split()) == 3 and message.text.split()[1] == "download":
-        await message.edit("Downloading...")
+        await msg(message, text="Downloading...")
         driveid = await get_driveid(message.text.split()[2])
         if not driveid:
-            await message.edit(
+            await msg(message, text=
                 "Invaild URL!\nIf you think this is bug, please go to your Assistant bot and type `/reportbug`")
             return
         filename = await get_driveinfo(driveid)
         if not filename:
-            await message.edit(
+            await msg(message, text=
                 "Invaild URL!\nIf you think this is bug, please go to your Assistant bot and type `/reportbug`")
             return
-        await message.edit("Downloading for `{}`\nPlease wait...".format(filename.replace(' ', '_')))
+        await msg(message, text="Downloading for `{}`\nPlease wait...".format(filename.replace(' ', '_')))
         download = drive.CreateFile({'id': driveid})
         download.GetContentFile(filename)
         try:
             os.rename(filename, "nana/downloads/" + filename.replace(' ', '_'))
         except FileExistsError:
             os.rename(filename, "nana/downloads/" + filename.replace(' ', '_') + ".2")
-        await message.edit("Downloaded!\nFile saved to `{}`".format("nana/downloads/" + filename.replace(' ', '_')))
+        await msg(message, text="Downloaded!\nFile saved to `{}`".format("nana/downloads/" + filename.replace(' ', '_')))
     elif len(message.text.split()) == 3 and message.text.split()[1] == "upload":
         filerealname = message.text.split()[2].split(None, 1)[0]
         filename = "nana/downloads/{}".format(filerealname.replace(' ', '_'))
         checkfile = os.path.isfile(filename)
         if not checkfile:
-            await message.edit("File `{}` was not found!".format(filerealname))
+            await msg(message, text="File `{}` was not found!".format(filerealname))
             return
-        await message.edit("Uploading `{}`...".format(filerealname))
+        await msg(message, text="Uploading `{}`...".format(filerealname))
         upload = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": drive_dir}], 'title': filerealname})
         upload.SetContentFile(filename)
         upload.Upload()
         upload.InsertPermission({'type': 'anyone', 'value': 'anyone', 'role': 'reader'})
-        await message.edit(
+        await msg(message, text=
             "Uploaded!\nDownload link: [{}]({})\nDirect download link: [{}]({})".format(filerealname, upload[
                 'alternateLink'], filerealname, upload['downloadUrl']))
     elif len(message.text.split()) == 3 and message.text.split()[1] == "mirror":
-        message.edit("Mirroring...")
+        msg(message, text="Mirroring...")
         driveid = await get_driveid(message.text.split()[2])
         if not driveid:
-            await message.edit(
-                "Invaild URL!\nIf you think this is bug, please go to your Assistant bot and type `/reportbug`")
+            await msg(message, text="Invaild URL!\nIf you think this is bug, please go to your Assistant bot and type `/reportbug`")
             return
         filename = await get_driveinfo(driveid)
         if not filename:
-            await message.edit(
-                "Invaild URL!\nIf you think this is bug, please go to your Assistant bot and type `/reportbug`")
+            await msg(message, text="Invaild URL!\nIf you think this is bug, please go to your Assistant bot and type `/reportbug`")
             return
         mirror = drive.auth.service.files().copy(fileId=driveid,
                                                  body={"parents": [{"kind": "drive#fileLink", "id": drive_dir}],
                                                        'title': filename}).execute()
         new_permission = {'type': 'anyone', 'value': 'anyone', 'role': 'reader'}
         drive.auth.service.permissions().insert(fileId=mirror['id'], body=new_permission).execute()
-        await message.edit(
-            "Done!\nDownload link: [{}]({})\nDirect download link: [{}]({})".format(filename, mirror['alternateLink'],
+        await msg(message, text="Done!\nDownload link: [{}]({})\nDirect download link: [{}]({})".format(filename, mirror['alternateLink'],
                                                                                     filename, mirror['downloadUrl']))
     elif len(message.text.split()) == 2 and message.text.split()[1] == "tgmirror":
         if message.reply_to_message:
-            await message.edit("__Downloading...__")
+            await msg(message, text="__Downloading...__")
             c_time = time.time()
             if message.reply_to_message.photo:
                 if not message.reply_to_message.caption: 
@@ -244,36 +242,36 @@ async def gdrive_stuff(client, message):
                                             progress=lambda d, t: asyncio.get_event_loop().create_task(
                                                 progressdl(d, t, message, c_time, "Downloading...")))
             else:
-                await message.edit("Unknown file!")
+                await msg(message, text="Unknown file!")
                 return
             upload = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": drive_dir}], 'title': nama})
             upload.SetContentFile("nana/downloads/" + nama)
             upload.Upload()
             upload.InsertPermission({'type': 'anyone', 'value': 'anyone', 'role': 'reader'})
-            await message.edit(
+            await msg(message, text=
                 "Done!\nDownload link: [{}]({})\nDirect download link: [{}]({})".format(nama, upload['alternateLink'],
                                                                                         nama, upload['downloadUrl']))
             os.remove("nana/downloads/" + nama)
         else:
-            await message.edit("Reply document to mirror it to gdrive")
+            await msg(message, text="Reply document to mirror it to gdrive")
     elif len(message.text.split()) == 3 and message.text.split()[1] == "urlmirror":
-        await message.edit("Downloading...")
+        await msg(message, text="Downloading...")
         URL = message.text.split()[2]
         nama = URL.split("/")[-1]
         time_dl = await download_url(URL, nama)
         if "Downloaded" not in time_dl:
-            await message.edit("Failed to download file, invaild url!")
+            await msg(message, text="Failed to download file, invaild url!")
             return
-        await message.edit(f"Downloaded with {time_dl}.\nNow uploading...")
+        await msg(message, text=f"Downloaded with {time_dl}.\nNow uploading...")
         upload = drive.CreateFile({"parents": [{"kind": "drive#fileLink", "id": drive_dir}], 'title': nama})
         upload.SetContentFile("nana/downloads/" + nama)
         upload.Upload()
         upload.InsertPermission({'type': 'anyone', 'value': 'anyone', 'role': 'reader'})
-        await message.edit(
+        await msg(message, text=
             "Done!\nDownload link: [{}]({})\nDirect download link: [{}]({})".format(nama, upload['alternateLink'], nama,
                                                                                     upload['downloadUrl']))
         os.remove("nana/downloads/" + nama)
     else:
-        await message.edit(
+        await msg(message, text=
             "Usage:\n-> `gdrive download <url/gid>`\n-> `gdrive upload <file>`\n-> `gdrive mirror <url/gid>`\n\nFor "
             "more information about this, go to your assistant.")

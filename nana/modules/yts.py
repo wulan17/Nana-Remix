@@ -12,8 +12,9 @@ import htmlement
 
 from pyrogram import Filters
 
-from nana import app, Command, setbot
+from nana import app, Command, setbot, AdminSettings
 from nana.helpers.aiohttp_helper import AioHttp
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "YTS"
 __HELP__ = """
@@ -48,7 +49,7 @@ async def sukebei_search(query):
     return results
 
 
-@app.on_message(Filters.me & Filters.command("yts", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("yts", Command))
 async def yts(_client, message):
     qual = None
     max_limit = 5
@@ -66,7 +67,7 @@ async def yts(_client, message):
     elif get_limit.search(input_):
         max_limit = int(get_limit.search(input_).group().strip('-l'))
     if len(input_) == 0:
-        await message.edit("No Input")
+        await msg(message, text="No Input")
         await asyncio.sleep(3)
         await message.delete()
         return
@@ -74,17 +75,17 @@ async def yts(_client, message):
     resp = requests.get(URL.format(query=_movie, limit=max_limit))
     datas = resp.json()
     if datas['status'] != "ok":
-        await message.edit("Wrong Status")
+        await msg(message, text="Wrong Status")
         await asyncio.sleep(3)
         await message.delete()
         return
     if datas['data']['movie_count'] == 0 or len(datas['data']) == 3:
-        await message.edit(f"{_movie} Not Found!")
+        await msg(message, text=f"{_movie} Not Found!")
         await asyncio.sleep(3)
         await message.delete()
         return
     _matches = datas['data']['movie_count']
-    await message.edit(f"`{_matches} Matches Found!, Asisstant sending {len(datas['data']['movies'])}.`")
+    await msg(message, text=f"`{_matches} Matches Found!, Asisstant sending {len(datas['data']['movies'])}.`")
     await asyncio.sleep(5)
     await message.delete()
     for data in datas['data']['movies']:
@@ -119,14 +120,14 @@ Available in: {qualsize}'''
             )
             os.remove(files)
         else:
-            message.edit("Not Found")
+            msg(message, text="Not Found")
             await asyncio.sleep(3)
             await message.delete()
             return
     return
 
 
-@app.on_message(Filters.me & Filters.command("ytsearch", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("ytsearch", Command))
 async def yts_search(_client, message):
     cmd = message.command
     query = ""
@@ -135,12 +136,12 @@ async def yts_search(_client, message):
     elif message.reply_to_message and len(cmd) == 1:
         query = message.reply_to_message.text
     elif len(cmd) == 1:
-        await message.edit("`No search query given for torrent search`")
+        await msg(message, text="`No search query given for torrent search`")
         await asyncio.sleep(2)
         await message.delete()
         return
     rep = ""
-    await message.edit("`please check assistant for magnet urls`")
+    await msg(message, text="`please check assistant for magnet urls`")
     count = 0
     try:
         torrents = await AioHttp().get_json(f"https://sjprojectsapi.herokuapp.com/torrent/?query={query}")
@@ -163,16 +164,16 @@ async def yts_search(_client, message):
             except Exception as e:
                 print(e)
         if rep == "":
-            await message.edit(f"No torrents found: __{query}__")
+            await msg(message, text=f"No torrents found: __{query}__")
     except Exception as e:
         print(e)
-        await message.edit("API is Down!\nTry again later")
+        await msg(message, text="API is Down!\nTry again later")
         await asyncio.sleep(2)
         await message.delete()
     await message.delete()
 
 
-@app.on_message(Filters.me & Filters.command("sb", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("sb", Command))
 async def saku_bei(client, message):
     cmd = message.command
     query = ""
@@ -181,7 +182,7 @@ async def saku_bei(client, message):
     elif message.reply_to_message and len(cmd) == 1:
         query = message.reply_to_message.text
     elif len(cmd) == 1:
-        await message.edit("`cant sakubei the void.`")
+        await msg(message, text="`cant sakubei the void.`")
         await asyncio.sleep(2)
         await message.delete()
         return
@@ -189,10 +190,10 @@ async def saku_bei(client, message):
         results = await sukebei_search(query)
     except Exception as e:
         print(e)
-        await message.edit("`something went wrong please check logs!")
+        await msg(message, text="`something went wrong please check logs!")
         await asyncio.sleep(2)
         await message.delete()
-    await message.edit("`check assistant for magnet links`")
+    await msg(message, text="`check assistant for magnet links`")
     await asyncio.sleep(7)
     await message.delete()
     count = 0

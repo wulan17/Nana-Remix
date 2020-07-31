@@ -3,7 +3,8 @@ from html import escape
 
 from pyrogram import Filters
 
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Stylish Text"
 __HELP__ = """
@@ -181,10 +182,10 @@ def stylish_formatting(text):
     return text
 
 
-@app.on_message(Filters.me & Filters.command("stylish", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("stylish", Command))
 async def stylish_generator(_client, message):
     if message.text and len(message.text.split()) == 1 or message.caption and len(message.caption.split()) == 1:
-        await message.edit("Usage: `stylish your text goes here`")
+        await msg(message, text="Usage: `stylish your text goes here`")
         return
 
     if message.caption:
@@ -197,7 +198,7 @@ async def stylish_generator(_client, message):
     if message.caption:
         await message.edit_caption(text)
     else:
-        await message.edit(text)
+        await msg(message, text=text)
 
 
 # For inline stuff

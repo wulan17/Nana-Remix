@@ -1,4 +1,5 @@
 from pyrogram import Message, User
+from inspect import getfullargspec
 
 
 def ReplyCheck(message: Message):
@@ -26,3 +27,9 @@ def GetUserMentionable(user: User):
         username = "<a href='tg://user?id={}'>{}</a>".format(user.id, name_string)
 
     return username
+
+
+async def msg(message: Message, **kwargs):
+    func = message.edit if message.from_user.is_self else message.reply
+    spec = getfullargspec(func).args
+    await func(**{k: v for k, v in kwargs.items() if k in spec})

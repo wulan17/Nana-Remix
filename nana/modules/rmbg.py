@@ -12,18 +12,18 @@ from asyncio import sleep
 
 from removebg import RemoveBg
 from pyrogram import Filters
-from nana import app, Command, remove_bg_api
-from nana.helpers.PyroHelpers import ReplyCheck
+from nana import app, Command, remove_bg_api, AdminSettings
+from nana.helpers.PyroHelpers import ReplyCheck, msg
 
 DOWN_PATH = 'nana/'
 
 IMG_PATH = DOWN_PATH + "image.jpg"
 
 
-@app.on_message(Filters.me & Filters.command("rmbg", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("rmbg", Command))
 async def remove_bg(client, message):
     if not remove_bg_api:
-        await message.edit("Get the API from [Remove.bg](https://www.remove.bg/b/background-removal-api)",
+        await msg(message, text="Get the API from [Remove.bg](https://www.remove.bg/b/background-removal-api)",
                            disable_web_page_preview=True, parse_mode="html")
     replied = message.reply_to_message
     if (replied and replied.media
@@ -32,7 +32,7 @@ async def remove_bg(client, message):
         if os.path.exists(IMG_PATH):
             os.remove(IMG_PATH)
         await client.download_media(message=replied, file_name=IMG_PATH)
-        await message.edit("`Removing Background...`")
+        await msg(message, text="`Removing Background...`")
         try:
             rmbg = RemoveBg(remove_bg_api, "rm_bg_error.log")
             rmbg.remove_background_from_img_file(IMG_PATH)
@@ -47,8 +47,8 @@ async def remove_bg(client, message):
             os.remove(IMG_PATH)
         except Exception as e:
             print(e)
-            await message.edit("`Something went wrong!`")
+            await msg(message, text="`Something went wrong!`")
             await sleep(3)
             await message.delete()
     else:
-        await message.edit("Usage: reply to a photo to remove background!")
+        await msg(message, text="Usage: reply to a photo to remove background!")

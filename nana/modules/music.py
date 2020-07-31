@@ -2,7 +2,8 @@ import asyncio
 
 from pyrogram import Filters
 
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 
 
 __MODULE__ = "Deezer"
@@ -15,7 +16,7 @@ Search a track on Deezer and send into a chat
 """
 
 
-@app.on_message(Filters.me & Filters.command("music", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("music", Command))
 async def send_music(client, message):
     try:
         cmd = message.command
@@ -25,7 +26,7 @@ async def send_music(client, message):
         elif message.reply_to_message and len(cmd) == 1:
             song_name = message.reply_to_message.text or message.reply_to_message.caption
         elif len(cmd) == 1:
-            await message.edit("Give a song name")
+            await msg(message, text="Give a song name")
             await asyncio.sleep(2)
             await message.delete()
             return
@@ -53,12 +54,12 @@ async def send_music(client, message):
             # delete the message from Saved Messages
             await client.delete_messages("me", saved.message_id)
         except TimeoutError:
-            await message.edit("That didn't work out")
+            await msg(message, text="That didn't work out")
             await asyncio.sleep(2)
         await message.delete()
     except Exception as e:
         print(e)
-        await message.edit("`Failed to find song`")
+        await msg(message, text="`Failed to find song`")
         await asyncio.sleep(2)
         await message.delete()
         

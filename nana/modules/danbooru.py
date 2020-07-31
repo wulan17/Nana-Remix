@@ -1,7 +1,8 @@
 import requests
 from asyncio import sleep
 from pyrogram import Filters
-from nana import app, Command
+from nana import app, Command, AdminSettings
+from nana.helpers.PyroHelpers import msg
 __MODULE__ = "Danbooru"
 __HELP__ = """
 This module can search images in danbooru and send in to the chat!
@@ -12,9 +13,9 @@ Search images from Danbooru.
 
 """
 
-@app.on_message(Filters.me & Filters.command("animu", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("animu", Command))
 async def danbooru(client, message):
-    await message.edit("`Processing…`")
+    await msg(message, text="`Processing…`")
 
     rating = "Explicit" if "nsfw" in message.command[1] else "Safe"
     search_query = ' '.join(message.command[2:])
@@ -27,13 +28,13 @@ async def danbooru(client, message):
         if response.status_code == 200:
             response = response.json()
         else:
-            await message.edit(f"`An error occurred, response code:` **{response.status_code}**")
+            await msg(message, text=f"`An error occurred, response code:` **{response.status_code}**")
             await sleep(5)
             await message.delete()
             return
 
     if not response:
-        await message.edit(f"`No results for query:` __{search_query}__")
+        await msg(message, text=f"`No results for query:` __{search_query}__")
         await sleep(5)
         await message.delete()
         return
@@ -46,7 +47,7 @@ async def danbooru(client, message):
 
 
     if not valid_urls:
-        await message.edit(f"`Failed to find URLs for query:` __{search_query}__")
+        await msg(message, text=f"`Failed to find URLs for query:` __{search_query}__")
         await sleep(5)
         await message.delete()
         return
@@ -57,6 +58,6 @@ async def danbooru(client, message):
             return
         except Exception as e:
             print(e)
-    await message.edit(f"``Failed to fetch media for query:` __{search_query}__")
+    await msg(message, text=f"``Failed to fetch media for query:` __{search_query}__")
     await sleep(5)
     await message.delete()

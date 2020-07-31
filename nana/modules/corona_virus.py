@@ -3,8 +3,9 @@ import asyncio
 
 from pyrogram import Filters
 
-from nana import Command, app
+from nana import Command, app, AdminSettings
 from nana.helpers.aiohttp_helper import AioHttp
+from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Covid"
 __HELP__ = """
@@ -16,7 +17,7 @@ Check info of cases corona virus disease 2019
 """
 
 
-@app.on_message(Filters.me & Filters.command("covid", Command))
+@app.on_message(Filters.user(AdminSettings) & Filters.command("covid", Command))
 async def corona(_client, message):
     args = message.text.split(None, 1)
     if len(args) == 1:
@@ -33,10 +34,10 @@ async def corona(_client, message):
  - **Cases/Mil:** `{r['casesPerOneMillion']}`
  - **Deaths/Mil:** `{r['deathsPerOneMillion']}``
 """
-            await message.edit(f"{reply_text}")
+            await msg(message, text=f"{reply_text}")
             return
         except Exception as e:
-            await message.edit("`The corona API could not be reached`")
+            await msg(message, text="`The corona API could not be reached`")
             print(e)
             await asyncio.sleep(3)
             await message.delete()
@@ -44,7 +45,7 @@ async def corona(_client, message):
     country = args[1]
     r = await AioHttp().get_json(f"https://corona.lmao.ninja/v2/countries/{country}")
     if "cases" not in r:
-        await message.edit("```The country could not be found!```")
+        await msg(message, text="```The country could not be found!```")
         await asyncio.sleep(3)
         await message.delete()
     else:
@@ -60,9 +61,9 @@ async def corona(_client, message):
  - **Cases/Mil:** `{r['casesPerOneMillion']}`
  - **Deaths/Mil:** `{r['deathsPerOneMillion']}`
 """
-            await message.edit(f"{reply_text}")
+            await msg(message, text=f"{reply_text}")
         except Exception as e:
-            await message.edit("`The corona API could not be reached`")
+            await msg(message, text="`The corona API could not be reached`")
             print(e)
             await asyncio.sleep(3)
             await message.delete()
