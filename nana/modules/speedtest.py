@@ -30,7 +30,6 @@ async def speedtestxyz_callback(client, query):
         elif query.data == 'speedtest_text':
             result = speed.results.dict()
             replymsg += f"\nDownload: `{convert(result['download'])}Mb/s`\nUpload: `{convert(result['upload'])}Mb/s`\nPing: `{result['ping']}`"
-            await query.edit(
-                replymsg, parse_mode="markdown")
+            await setbot.edit_inline_text(query.inline_message_id, replymsg, parse_mode="markdown")
     else:
         await client.answer_callback_query(query.id, "No, you are not allowed to do this", show_alert=False)
