@@ -23,7 +23,7 @@ async def speedtestxyz_callback(client, query):
         replymsg = 'SpeedTest Results:'
         if query.data == 'speedtest_image':
             speedtest_image = speed.results.share()
-            await app.send_photo(query.chat.id,
+            await app.send_photo(query.message.chat.id,
                 photo=speedtest_image, caption=replymsg)
             msg.delete()
 
