@@ -13,7 +13,7 @@ def convert(speed):
     return round(int(speed) / 1048576, 2)
 
 @setbot.on_callback_query(speedtest_create)
-def speedtestxyz_callback(client, query):
+async def speedtestxyz_callback(client, query):
     if query.from_user.id in AdminSettings:
         msg = await setbot.edit_inline_text(query.inline_message_id,'Runing a speedtest....')
         speed = speedtest.Speedtest()
