@@ -243,6 +243,7 @@ async def inline_query_handler(client, query):
                                          results=answers,
                                          cache_time=0
                                          )
+        return
 
     elif string.split()[0] == "speedtest":
         buttons = [[InlineKeyboardButton("Image",
