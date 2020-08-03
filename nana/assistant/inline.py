@@ -6,7 +6,7 @@ from uuid import uuid4
 from pyrogram import InlineQueryResultArticle
 from pyrogram import errors, InlineKeyboardMarkup, InputTextMessageContent, InlineKeyboardButton
 
-from nana import setbot, Owner, OwnerName, DB_AVAILABLE
+from nana import setbot, Owner, OwnerName, DB_AVAILABLE, AdminSettings
 from nana.helpers.msg_types import Types
 from nana.helpers.string import parse_button, build_keyboard
 from nana.modules.pm import welc_txt
@@ -39,7 +39,7 @@ async def inline_query_handler(client, query):
     string = query.query.lower()
     answers = []
 
-    if query.from_user.id != Owner:
+    if query.from_user.id != AdminSettings:
         await client.answer_inline_query(query.id,
                                          results=answers,
                                          switch_pm_text="Sorry, this bot only for {}".format(OwnerName),
