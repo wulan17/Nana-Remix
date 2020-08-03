@@ -243,3 +243,19 @@ async def inline_query_handler(client, query):
                                          results=answers,
                                          cache_time=0
                                          )
+
+    elif string.split()[0] == "speedtest":
+        buttons = [[InlineKeyboardButton("Image",
+                                        callback_data="speedtest_image"),
+                    InlineKeyboardButton("Text",
+                                        callback_data="speedtest_text")]]
+        answers.append(InlineQueryResultArticle(
+            id=uuid4(),
+            title="Speed Test",
+            description="test your speed",
+            input_message_content=InputTextMessageContent("Select SpeedTest Mode", parse_mode="markdown"),
+            reply_markup=InlineKeyboardMarkup(buttons)))
+        await client.answer_inline_query(query.id,
+                                         results=answers,
+                                         cache_time=0
+                                         )
