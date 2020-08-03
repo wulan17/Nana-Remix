@@ -23,14 +23,14 @@ async def speedtestxyz_callback(client, query):
         replymsg = 'SpeedTest Results:'
         if query.data == 'speedtest_image':
             speedtest_image = speed.results.share()
-            await app.send_photo(query.chat.id,
+            await app.send_photo(query.id,
                 photo=speedtest_image, caption=replymsg)
             msg.delete()
 
         elif query.data == 'speedtest_text':
             result = speed.results.dict()
             replymsg += f"\nDownload: `{convert(result['download'])}Mb/s`\nUpload: `{convert(result['upload'])}Mb/s`\nPing: `{result['ping']}`"
-            await query.edit(
+            await query.message.edit_text(
                 replymsg, parse_mode="markdown")
     else:
         await client.answer_callback_query(query.id, "No, you are not allowed to do this", show_alert=False)
