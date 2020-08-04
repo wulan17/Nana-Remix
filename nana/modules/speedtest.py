@@ -37,8 +37,8 @@ async def speedtestxyz_callback(client, query):
         elif query.data == 'speedtest_text':
             result = speed.results.dict()
             replymsg += f"\n - **ISP:** `{result['client']['isp']}`"
-            replymsg += f"\n - **Download:** `{speed_convert(result['download'])}Mb/s`"
-            replymsg += f"\n - **Upload:** `{speed_convert(result['upload'])}Mb/s`"
+            replymsg += f"\n - **Download:** `{speed_convert(result['download'])}`"
+            replymsg += f"\n - **Upload:** `{speed_convert(result['upload'])}`"
             replymsg += f"\n - **Ping:** `{result['ping']}`"
             await setbot.edit_inline_text(query.inline_message_id, replymsg, parse_mode="markdown")
     else:
