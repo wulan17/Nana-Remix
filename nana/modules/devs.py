@@ -9,7 +9,6 @@ from platform import python_version
 
 import requests
 from pyrogram import Filters
-from speedtest import Speedtest
 import pyrogram as p
 
 from nana import Command, logging, app, DB_AVAILABLE, USERBOT_VERSION, AdminSettings
@@ -310,37 +309,3 @@ async def get_id(_client, message):
         await msg(message, text=user_detail)
     else:
         await msg(message, text=f"**Chat ID**: `{message.chat.id}`")
-
-
-@app.on_message(Filters.user(AdminSettings) & Filters.command("speedtest", Command))
-async def speedtest(_client, message):
-    await msg(message, text="`Running speed test . . .`")
-    test = Speedtest()
-    test.get_best_server()
-    test.download()
-    test.upload()
-    test.results.share()
-    result = test.results.dict()
-    await msg(message, text="`"
-                       "Started at "
-                       f"{result['timestamp']} \n\n"
-                       "Download "
-                       f"{speed_convert(result['download'])} \n"
-                       "Upload "
-                       f"{speed_convert(result['upload'])} \n"
-                       "Ping "
-                       f"{result['ping']} \n"
-                       "ISP "
-                       f"{result['client']['isp']}"
-                       "`")
-
-
-def speed_convert(size):
-    """Hi human, you can't read bytes?"""
-    power = 2 ** 10
-    zero = 0
-    units = {0: '', 1: 'Kb/s', 2: 'Mb/s', 3: 'Gb/s', 4: 'Tb/s'}
-    while size > power:
-        size /= power
-        zero += 1
-    return f"{round(size, 2)} {units[zero]}"
