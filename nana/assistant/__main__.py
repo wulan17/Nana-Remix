@@ -114,7 +114,7 @@ Convert a text to various style, can be used anywhere!
         await setbot.send_message(Owner, start_message, reply_markup=buttons)
 
 
-@setbot.on_message(Filters.user(AdminSettings) & Filters.command(["getme"]))
+@setbot.on_message(Filters.user(Owner) & Filters.command(["getme"]))
 async def get_myself(client, message):
     try:
         me = await app.get_me()
@@ -145,7 +145,7 @@ async def get_myself(client, message):
 
 
 @setbot.on_message(
-    Filters.user(AdminSettings) & Filters.command(["settings"]) & Filters.private
+    Filters.user(Owner) & Filters.command(["settings"]) & Filters.private
 )
 async def settings(_client, message):
     try:

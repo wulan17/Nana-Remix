@@ -82,7 +82,7 @@ async def aexec(client, message, code):
     return await locals()['__ex'](client, message)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("py", Command))
+@app.on_message(Filters.me & Filters.command("py", Command))
 async def executor(client, message):
     if len(message.text.split()) == 1:
         await msg(message, text="Usage: `py await msg(message, text='edited!')`")
@@ -99,7 +99,7 @@ async def executor(client, message):
         logging.exception("Execution error")
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("ip", Command))
+@app.on_message(Filters.me & Filters.command("ip", Command))
 async def public_ip(_client, message):
     j = await AioHttp().get_json("http://ip-api.com/json")
     stats = f"**ISP {j['isp']}:**\n"
@@ -114,7 +114,7 @@ async def public_ip(_client, message):
 
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("sh", Command))
+@app.on_message(Filters.me & Filters.command("sh", Command))
 async def terminal(client, message):
     if len(message.text.split()) == 1:
         await msg(message, text="Usage: `sh ping -c 5 google.com`")
@@ -176,14 +176,14 @@ async def terminal(client, message):
         await msg(message, text="**Input: **\n`{}`\n\n**Output: **\n`No Output`".format(teks))
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command(["log"], Command))
+@app.on_message(Filters.me & Filters.command(["log"], Command))
 async def log(_client, message):
     f = open("nana/logs/error.log", "r")
     data = await deldog(message, f.read())
     await msg(message, text=f"`Your recent logs stored here : `{data}")
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("dc", Command))
+@app.on_message(Filters.me & Filters.command("dc", Command))
 async def dc_id(_client, message):
     user = message.from_user
     if message.reply_to_message:
@@ -213,7 +213,7 @@ async def dc_id(_client, message):
     await msg(message, text=text)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("alive", Command))
+@app.on_message(Filters.me & Filters.command("alive", Command))
 async def alive(_client, message):
     repo = git.Repo(os.getcwd())
     master = repo.head.reference
@@ -233,7 +233,7 @@ async def alive(_client, message):
     text += f" - **Database**: `{DB_AVAILABLE}`\n"
     await msg(message, text=text, disable_web_page_preview=True)
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("id", Command))
+@app.on_message(Filters.me & Filters.command("id", Command))
 async def get_id(_client, message):
     file_id = None
     user_id = None
