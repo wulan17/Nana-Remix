@@ -29,48 +29,50 @@ DELIMITERS = ("/", ":", "|", "_")
 
 async def separate_sed(sed_string):
     if (
-            len(sed_string) >= 3
-            and sed_string[3] in DELIMITERS
-            and sed_string.count(sed_string[3]) >= 2
+        len(sed_string) < 3
+        or sed_string[3] not in DELIMITERS
+        or sed_string.count(sed_string[3]) < 2
     ):
-        delim = sed_string[3]
-        start = counter = 4
-        while counter < len(sed_string):
-            if sed_string[counter] == "\\":
-                counter += 1
+        return
 
-            elif sed_string[counter] == delim:
-                replace = sed_string[start:counter]
-                counter += 1
-                start = counter
-                break
-
+    delim = sed_string[3]
+    start = counter = 4
+    while counter < len(sed_string):
+        if sed_string[counter] == "\\":
             counter += 1
 
-        else:
-            return None
-
-        while counter < len(sed_string):
-            if (
-                    sed_string[counter] == "\\"
-                    and counter + 1 < len(sed_string)
-                    and sed_string[counter + 1] == delim
-            ):
-                sed_string = sed_string[:counter] + sed_string[counter + 1:]
-
-            elif sed_string[counter] == delim:
-                replace_with = sed_string[start:counter]
-                counter += 1
-                break
-
+        elif sed_string[counter] == delim:
+            replace = sed_string[start:counter]
             counter += 1
-        else:
-            return replace, sed_string[start:], ""
+            start = counter
+            break
 
-        flags = ""
-        if counter < len(sed_string):
-            flags = sed_string[counter:]
-        return replace, replace_with, flags.lower()
+        counter += 1
+
+    else:
+        return None
+
+    while counter < len(sed_string):
+        if (
+                sed_string[counter] == "\\"
+                and counter + 1 < len(sed_string)
+                and sed_string[counter + 1] == delim
+        ):
+            sed_string = sed_string[:counter] + sed_string[counter + 1:]
+
+        elif sed_string[counter] == delim:
+            replace_with = sed_string[start:counter]
+            counter += 1
+            break
+
+        counter += 1
+    else:
+        return replace, sed_string[start:], ""
+
+    flags = ""
+    if counter < len(sed_string):
+        flags = sed_string[counter:]
+    return replace, replace_with, flags.lower()
 
 
 @app.on_message(Filters.me & Filters.regex("^s/(.*?)"))
@@ -81,8 +83,8 @@ async def sed_msg(client, message):
             to_fix = message.reply_to_message.text
             if to_fix is None:
                 to_fix = message.reply_to_message.caption
-                if to_fix is None:
-                    return
+            if to_fix is None:
+                return
         else:
             return
         repl, repl_with, flags = sed_result
