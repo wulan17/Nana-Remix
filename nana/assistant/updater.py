@@ -15,7 +15,6 @@ from nana import (
     REMINDER_UPDATE,
     TEST_DEVELOP,
     HEROKU_API,
-    DB_AVAILABLE,
 )
 from nana.__main__ import restart_all, loop
 

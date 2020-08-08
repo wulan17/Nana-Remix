@@ -1,4 +1,3 @@
-import random
 from asyncio import sleep
 from pyrogram import Filters
 from nana import app, Command, AdminSettings
@@ -32,10 +31,9 @@ async def q_maker(_client, message):
             print(e)
             await sleep(0.5)
             try:
-                await msg(message, text="**Making a Quote**")
+                print('Making a Quote')
             except Exception as e:
                 print(e)
-    await msg(message, text="**Completed!**")
     msg_id = ms_g[0]["message_id"]
     await message.delete()
     await app.forward_messages(message.chat.id, "@QuotLyBot", msg_id, as_copy=True)

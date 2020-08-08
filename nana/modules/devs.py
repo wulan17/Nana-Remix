@@ -1,5 +1,4 @@
 import os
-import git
 import re
 import shutil
 import subprocess
@@ -11,7 +10,7 @@ import requests
 from pyrogram import Filters
 import pyrogram as p
 
-from nana import Command, logging, app, DB_AVAILABLE, USERBOT_VERSION, AdminSettings
+from nana import Command, logging, app
 from nana.helpers.deldog import deldog
 from nana.helpers.parser import mention_markdown
 from nana.helpers.aiohttp_helper import AioHttp
@@ -55,8 +54,8 @@ Send id of what you replied to
 async def stk(chat, photo):
     if "http" in photo:
         r = requests.get(photo, stream=True)
-        with open("nana/cache/stiker.png", "wb") as stk:
-            shutil.copyfileobj(r.raw, stk)
+        with open("nana/cache/stiker.png", "wb") as stikr:
+            shutil.copyfileobj(r.raw, stikr)
         await app.send_sticker(chat, "nana/cache/stiker.png")
         os.remove("nana/cache/stiker.png")
     else:
@@ -184,7 +183,7 @@ async def log(_client, message):
 
 
 @app.on_message(Filters.me & Filters.command("dc", Command))
-async def dc_id(_client, message):
+async def dc_id_check(_client, message):
     user = message.from_user
     if message.reply_to_message:
         if message.reply_to_message.forward_from:
@@ -212,26 +211,6 @@ async def dc_id(_client, message):
         text = "{}'s assigned datacenter is **Unknown**".format(user)
     await msg(message, text=text)
 
-
-@app.on_message(Filters.me & Filters.command("alive", Command))
-async def alive(_client, message):
-    repo = git.Repo(os.getcwd())
-    master = repo.head.reference
-    commit_id = master.commit.hexsha
-    commit_link = f"<a href='https://github.com/pokurt/Nana-Remix/commit/{commit_id}'>{commit_id[:7]}</a>"
-    try:
-        me = await app.get_me()
-    except ConnectionError:
-        me = None
-    text = f"**[Nana-Remix](https://github.com/pokurt/Nana-Remix) Running on {commit_link}:**\n"
-    if not me:
-        text += f" - **Bot**: `stopped (v{USERBOT_VERSION})`\n"
-    else:
-        text += f" - **Bot**: `alive (v{USERBOT_VERSION})`\n"
-    text += f" - **Pyrogram**: `{p.__version__}`\n"
-    text += f" - **Python**: `{python_version()}`\n"
-    text += f" - **Database**: `{DB_AVAILABLE}`\n"
-    await msg(message, text=text, disable_web_page_preview=True)
 
 @app.on_message(Filters.me & Filters.command("id", Command))
 async def get_id(_client, message):

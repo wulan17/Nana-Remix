@@ -6,7 +6,7 @@ from git import Repo
 from git.exc import InvalidGitRepositoryError, GitCommandError, NoSuchPathError
 from pyrogram import Filters
 
-from nana import app, Command, OFFICIAL_BRANCH, REPOSITORY, HEROKU_API, AdminSettings
+from nana import app, Command, OFFICIAL_BRANCH, REPOSITORY, HEROKU_API
 from nana.__main__ import restart_all, except_hook
 from nana.assistant.updater import update_changelog
 from nana.helpers.PyroHelpers import msg

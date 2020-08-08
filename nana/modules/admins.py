@@ -118,8 +118,6 @@ async def invite_link(client, message):
 @app.on_message(Filters.user(AdminSettings) & Filters.command("pin", Command))
 async def pin_message(client, message):
     if message.chat.type in ["group", "supergroup"]:
-        chat_id = message.chat.id
-        get_group = await client.get_chat(chat_id)
         can_pin = await admin_check(message)
         if can_pin:
             try:
@@ -136,9 +134,7 @@ async def pin_message(client, message):
                         message.reply_to_message.message_id,
                         disable_notification=disable_notification,
                     )
-                    text = f"**Message Pinned**\n"
-                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
-                    await msg(message, text=text)
+                    await message.delete()
                 else:
                     await msg(message, text="`Reply to a message to pin`")
                     await asyncio.sleep(5)
@@ -176,7 +172,7 @@ async def mute_hammer(client, message):
                             permissions=mute_permission,
                             until_date=int(time.time() + 86400),
                         )
-                        text = f"**Muted for 24 hours**\n"
+                        text = "**Muted for 24 hours**\n"
                         text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
                         text += f"(`{get_mem.user.id}`)\n"
                         text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -187,7 +183,7 @@ async def mute_hammer(client, message):
                             user_id=message.reply_to_message.from_user.id,
                             permissions=mute_permission,
                         )
-                        text = f"**Muted Indefinitely**\n"
+                        text = "**Muted Indefinitely**\n"
                         text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
                         text += f"(`{get_mem.user.id}`)\n"
                         text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -224,7 +220,7 @@ async def unmute(client, message):
                         user_id=message.reply_to_message.from_user.id,
                         permissions=unmute_permissions,
                     )
-                    text = f"**Unmuted**\n"
+                    text = "**Unmuted**\n"
                     text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
                     text += f"(`{get_mem.user.id}`)\n"
                     text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -261,7 +257,7 @@ async def kick_user(client, message):
                     await client.kick_chat_member(
                         chat_id, get_mem.user.id, int(time.time() + 45)
                     )
-                    text = f"**Kicked**\n"
+                    text = "**Kicked**\n"
                     text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
                     text += f"(`{get_mem.user.id}`)\n"
                     text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -310,7 +306,7 @@ async def ban_usr(client, message):
                 try:
                     get_mem = await client.get_chat_member(chat_id, user_id)
                     await client.kick_chat_member(chat_id, user_id)
-                    text = f"**Banned**\n"
+                    text = "**Banned**\n"
                     text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
                     text += f"(`{get_mem.user.id}`)\n"
                     text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -366,7 +362,7 @@ async def unban_usr(client, message):
                         chat_id, message.reply_to_message.from_user.id
                     )
                     await client.unban_chat_member(chat_id, get_mem.user.id)
-                    text = f"**Unbanned**\n"
+                    text = "**Unbanned**\n"
                     text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
                     text += f"(`{get_mem.user.id}`)\n"
                     text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -428,7 +424,7 @@ async def promote_usr(client, message):
 
                     await asyncio.sleep(2)
                     await client.set_administrator_title(chat_id, user_id, custom_rank)
-                    text = f"**Promoted**\n"
+                    text = "**Promoted**\n"
                     text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
                     text += f"(`{get_mem.user.id}`)\n"
                     text += f"Chat: `{get_group.title}` (`{chat_id}`)"
@@ -491,7 +487,7 @@ async def demote_usr(client, message):
                     )
 
 
-                    text = f"**Demoted**\n"
+                    text = "**Demoted**\n"
                     text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id})\n"
                     text += f"(`{get_mem.user.id}`)\n"
                     text += f"Chat: `{get_group.title}` (`{chat_id}`)"

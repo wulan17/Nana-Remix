@@ -409,8 +409,8 @@ async def vars_heroku(_client, query):
         heroku = heroku3.from_key(HEROKU_API)
         heroku_applications = heroku.apps()
         if len(heroku_applications) >= 1:
-            app = heroku_applications[0]
-            config = app.config()
+            applic = heroku_applications[0]
+            config = applic.config()
             # if config["api_id"]:
             #     list_button.insert(0, [InlineKeyboardButton("api_id✅", callback_data="api_id")])
             # else:

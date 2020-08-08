@@ -67,12 +67,12 @@ async def purge_message(client, message):
             count_del_etion_s += len(message_ids)
     end_t = datetime.now()
     time_taken_ms = (end_t - start_t).seconds
-    msg = await client.send_message(
+    ms_g = await client.send_message(
         message.chat.id,
         f"Purged {count_del_etion_s} messages in {time_taken_ms} seconds"
         )
     await asyncio.sleep(5)
-    await msg.delete()
+    await ms_g.delete()
 
 
 @app.on_message(Filters.user(AdminSettings) & Filters.command("purgeme", Command))
