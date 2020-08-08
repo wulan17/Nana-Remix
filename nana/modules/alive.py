@@ -1,11 +1,11 @@
-from typing import List
+
 import time
+import re
 
 from pyrogram import Filters
+
 from nana import setbot, AdminSettings, BotUsername, app, Command, OwnerUsername, StartTime
 from nana.helpers.PyroHelpers import ReplyCheck
-import re
-import subprocess
 
 def alive_callback(_, query):
     if re.match("alive_message", query.data):
@@ -44,7 +44,7 @@ async def  alivemsg_callback(client, query):
     start_time = time.time()
     uptime = get_readable_time((time.time() - StartTime))
     reply_msg = f"{OwnerUsername}@nana-remix\n"
-    reply_msg += f"------------------\n"
+    reply_msg += "------------------\n"
     end_time = time.time()
     ping_time = round((end_time - start_time) * 1000, 3)
     reply_msg += f"Ping: {ping_time}ms\n"
@@ -54,7 +54,7 @@ async def  alivemsg_callback(client, query):
 
 @app.on_message(Filters.user(AdminSettings) & Filters.command("alive", Command))
 async def google_search(client, message):
-    x = await client.get_inline_bot_results(f"{BotUsername}", f"alive")
+    x = await client.get_inline_bot_results(f"{BotUsername}", "alive")
     await message.delete()
     await client.send_inline_bot_result(chat_id=message.chat.id,
                                         query_id=x.query_id,
