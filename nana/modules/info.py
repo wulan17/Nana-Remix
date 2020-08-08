@@ -1,7 +1,6 @@
 from datetime import datetime
 from time import sleep
 import spamwatch
-import html
 
 from pyrogram import Filters, User
 from pyrogram.api import functions

@@ -2,11 +2,13 @@ import sys
 import traceback
 import random
 from uuid import uuid4
-
-from pyrogram import InlineQueryResultArticle
+import git
+import os
+from pyrogram import InlineQueryResultArticle, __version__
 from pyrogram import errors, InlineKeyboardMarkup, InputTextMessageContent, InlineKeyboardButton
+from platform import python_version
 
-from nana import setbot, Owner, OwnerName, DB_AVAILABLE, AdminSettings
+from nana import setbot, Owner, OwnerName, DB_AVAILABLE, app, USERBOT_VERSION
 from nana.helpers.msg_types import Types
 from nana.helpers.string import parse_button, build_keyboard
 from nana.modules.pm import welc_txt
@@ -258,4 +260,33 @@ async def inline_query_handler(client, query):
                                          results=answers,
                                          cache_time=0
                                          )
+    elif string.split()[0] == "alive":
+        repo = git.Repo(os.getcwd())
+        master = repo.head.reference
+        commit_id = master.commit.hexsha
+        commit_link = f"[{commit_id[:7]}](https://github.com/pokurt/Nana-Remix/commit/{commit_id})"
+        try:
+            me = await app.get_me()
+        except ConnectionError:
+            me = None
+        text = f"**[Nana-Remix](https://github.com/pokurt/Nana-Remix) Running on {commit_link}:**\n"
+        if not me:
+            text += f" - **Bot**: `stopped (v{USERBOT_VERSION})`\n"
+        else:
+            text += f" - **Bot**: `alive (v{USERBOT_VERSION})`\n"
+        text += f" - **Pyrogram**: `{__version__}`\n"
+        text += f" - **Python**: `{python_version()}`\n"
+        text += f" - **Database**: `{DB_AVAILABLE}`\n"
+        buttons = [[InlineKeyboardButton("stats", callback_data="alive_message")]]
+        answers.append(InlineQueryResultArticle(
+            id=uuid4(),
+            title="Alive",
+            description="Nana Userbot",
+            input_message_content=InputTextMessageContent(text, parse_mode="markdown", disable_web_page_preview=True),
+            reply_markup=InlineKeyboardMarkup(buttons)))
+        await client.answer_inline_query(query.id,
+                                         results=answers,
+                                         cache_time=0
+                                         )
+
         return

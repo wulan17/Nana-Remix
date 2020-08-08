@@ -1,14 +1,10 @@
 import math
-import time
 import requests
-import json
-import asyncio
 
 from pyrogram import Filters
 
 
 from nana import app, Command, AdminSettings
-from nana.helpers.string import replace_text
 from nana.helpers.PyroHelpers import msg
 
 
@@ -39,14 +35,14 @@ To get airing time of the anime.
 
 
 def shorten(description, info='anilist.co'):
-    msg = ""
+    ms_g = ""
     if len(description) > 700:
         description = description[0:500] + '....'
-        msg += f"\n**Description**: __{description}__[Read More]({info})"
+        ms_g += f"\n**Description**: __{description}__[Read More]({info})"
     else:
-        msg += f"\n**Description**: __{description}__"
+        ms_g += f"\n**Description**: __{description}__"
     return (
-        msg.replace("<br>", "")
+        ms_g.replace("<br>", "")
         .replace("</br>", "")
         .replace("<i>", "")
         .replace("</i>", "")
@@ -194,9 +190,9 @@ async def anime_airing(_client, message):
         url, json={'query': airing_query, 'variables': variables}).json()['data']['Media']
     ms_g = f"**Name**: **{response['title']['romaji']}**(`{response['title']['native']}`)\n**ID**: `{response['id']}`"
     if response['nextAiringEpisode']:
-        time = response['nextAiringEpisode']['timeUntilAiring'] * 1000
-        time = t(time)
-        ms_g += f"\n**Episode**: `{response['nextAiringEpisode']['episode']}`\n**Airing In**: `{time}`"
+        airing_time = response['nextAiringEpisode']['timeUntilAiring'] * 1000
+        airing_time_final = t(airing_time)
+        ms_g += f"\n**Episode**: `{response['nextAiringEpisode']['episode']}`\n**Airing In**: `{airing_time_final}`"
     else:
         ms_g += f"\n**Episode**:{response['episodes']}\n**Status**: `N/A`"
     await msg(message, text=ms_g)
