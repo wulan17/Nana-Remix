@@ -134,11 +134,10 @@ async def pin_message(client, message):
                         message.reply_to_message.message_id,
                         disable_notification=disable_notification,
                     )
-                    await message.delete()
                 else:
                     await msg(message, text="`Reply to a message to pin`")
                     await asyncio.sleep(5)
-                    await message.delete()
+                await message.delete()
             except Exception as e:
                 await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
                 return
@@ -173,10 +172,6 @@ async def mute_hammer(client, message):
                             until_date=int(time.time() + 86400),
                         )
                         text = "**Muted for 24 hours**\n"
-                        text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        text += f"(`{get_mem.user.id}`)\n"
-                        text += f"Chat: `{get_group.title}` (`{chat_id}`)"
-                        await msg(message, text=text)
                     else:
                         await client.restrict_chat_member(
                             chat_id=message.chat.id,
@@ -184,10 +179,10 @@ async def mute_hammer(client, message):
                             permissions=mute_permission,
                         )
                         text = "**Muted Indefinitely**\n"
-                        text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
-                        text += f"(`{get_mem.user.id}`)\n"
-                        text += f"Chat: `{get_group.title}` (`{chat_id}`)"
-                        await msg(message, text=text)
+                    text += f"User: [{get_mem.user.first_name}](tg://user?id={get_mem.user.id}) "
+                    text += f"(`{get_mem.user.id}`)\n"
+                    text += f"Chat: `{get_group.title}` (`{chat_id}`)"
+                    await msg(message, text=text)
                 except Exception as e:
                     await msg(message, text="`Error!`\n" f"**Log:** `{e}`")
                     return
