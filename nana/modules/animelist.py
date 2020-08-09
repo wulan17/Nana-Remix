@@ -1,11 +1,11 @@
 import math
 import requests
+import asyncio
 
 from pyrogram import Filters
 
-
-from nana import app, Command, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import app, Command, AdminSettings, BotUsername
+from nana.helpers.PyroHelpers import msg, ReplyCheck
 
 
 __MODULE__ = "Anilist"
@@ -200,46 +200,22 @@ async def anime_airing(_client, message):
 
 @app.on_message(Filters.user(AdminSettings) & Filters.command("anime", Command))
 async def anime_search(client, message):
-    search = message.text.split(' ', 1)
-    if len(search) == 1:
+    cmd = message.command
+    mock = ""
+    if len(cmd) > 1:
+        mock = " ".join(cmd[1:])
+    elif len(cmd) == 1:
+        await msg(message, text="`Format: anime <anime name>`")
+        await asyncio.sleep(2)
         await message.delete()
         return
-    else:
-        search = search[1]
-    variables = {'search': search}
-    json = requests.post(url, json={'query': anime_query, 'variables': variables}).json()[
-        'data'].get('Media', None)
-    if json:
-        ms_g = f"**{json['title']['romaji']}**(`{json['title']['native']}`)\n**Type**: {json['format']}\n**Status**: {json['status']}\n**Episodes**: {json.get('episodes', 'N/A')}\n**Duration**: {json.get('duration', 'N/A')} Per Ep.\n**Score**: {json['averageScore']}\n**Genres**: `"
-        for x in json['genres']:
-            ms_g += f"{x}, "
-        ms_g = ms_g[:-2] + '`\n'
-        ms_g += "**Studios**: `"
-        for x in json['studios']['nodes']:
-            ms_g += f"{x['name']}, "
-        ms_g = ms_g[:-2] + '`\n'
-        info = json.get('siteUrl')
-        trailer = json.get('trailer', None)
-        if trailer:
-            trailer_id = trailer.get('id', None)
-            site = trailer.get('site', None)
-            if site == "youtube":
-                trailer = 'https://youtu.be/' + trailer_id
-        description = json.get(
-            'description', 'N/A').replace('<i>', '').replace('</i>', '').replace('<br>', '')
-        ms_g += shorten(description, info)
-        image = json.get('bannerImage', None)
-        if trailer:
-            ms_g += f"\nTrailer: {trailer}"
-        if image:
-            try:
-                await message.delete()
-                await client.send_photo(message.chat.id, photo=image, caption=ms_g)
-            except:
-                ms_g += f" [〽️]({image})"
-                await msg(message, text=ms_g)
-        else:
-            await msg(message, text=ms_g)
+    x = await client.get_inline_bot_results(f"{BotUsername}", f"anime {mock}")
+    await message.delete()
+    await client.send_inline_bot_result(chat_id=message.chat.id,
+                                        query_id=x.query_id,
+                                        result_id=x.results[0].id,
+                                        reply_to_message_id=ReplyCheck(message),
+                                        hide_via=True)
 
 
 @app.on_message(Filters.user(AdminSettings) & Filters.command("character", Command))
