@@ -338,7 +338,7 @@ async def inline_query_handler(client, query):
                     id=uuid4(),
                     title=f"{json['title']['romaji']}",
                     description=f"{json['averageScore']}",
-                    input_message_content=InputTextMessageContent(msg, parse_mode="markdown", disable_web_page_preview=False),
+                    input_message_content=InputTextMessageContent(msg, parse_mode="markdown", disable_web_page_preview=True),
                     reply_markup=InlineKeyboardMarkup(buttons)))
                 await client.answer_inline_query(query.id,
                                                 results=answers,
