@@ -48,6 +48,9 @@ Obtain Server internet speed using speedtest
 -> `id`
 Send id of what you replied to
 
+──「 **Self Destruct Reveal** 」──
+-> `reveal` or `reveal self`
+Reveal Self Destruct photo untouched, 'self' tag will reveal it in Saved Messages
 """
 
 
@@ -79,6 +82,28 @@ async def aexec(client, message, code):
 
     # Get `__ex` from local variables, call it and return the result
     return await locals()['__ex'](client, message)
+
+
+@app.on_message(Filters.me & Filters.command("reveal", Command))
+async def sd_reveal(client, message):
+    cmd = message.command
+    self_tag = " ".join(cmd[1:])
+    tags = "self" in self_tag
+    if len(message.text.split()) == 1:
+        await message.delete()
+        return
+    if tags:
+        await message.delete()
+        a = 'nana/file.png'
+        await client.download_media(message.reply_to_message.photo, file_name=a)
+        await client.send_photo('me', a)
+        os.remove(a)
+    else:
+        await message.delete()
+        a = 'nana/file.png'
+        await client.download_media(message.reply_to_message.photo, file_name=a)
+        await client.send_photo(message.chat.id, a)
+        os.remove(a)
 
 
 @app.on_message(Filters.me & Filters.command("py", Command))

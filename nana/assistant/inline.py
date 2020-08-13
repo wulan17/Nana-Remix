@@ -322,12 +322,13 @@ async def inline_query_handler(client, query):
                     [InlineKeyboardButton("More Info", url=info)]
                     ]
             if image:
-                msg += f" [‎]({image})"
-                answers.append(InlineQueryResultArticle(
+                answers.append(InlineQueryResultPhoto(
                     id=uuid4(),
+                    caption=msg,
+                    photo_url=image,
+                    parse_mode="markdown",
                     title=f"{json['title']['romaji']}",
-                    description=f"{json['averageScore']}",
-                    input_message_content=InputTextMessageContent(msg, parse_mode="markdown", disable_web_page_preview=False),
+                    description=f"{json['format']}",
                     reply_markup=InlineKeyboardMarkup(buttons)))
                 await client.answer_inline_query(query.id,
                                                 results=answers,
