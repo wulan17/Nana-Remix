@@ -9,7 +9,7 @@ from pyrogram import InlineQueryResultArticle, __version__, InlineQueryResultPho
 from pyrogram import errors, InlineKeyboardMarkup, InputTextMessageContent, InlineKeyboardButton
 from platform import python_version
 
-from nana import setbot, Owner, OwnerName, DB_AVAILABLE, app, USERBOT_VERSION
+from nana import setbot, Owner, OwnerName, DB_AVAILABLE, app, USERBOT_VERSION, AdminSettings
 from nana.helpers.msg_types import Types
 from nana.helpers.string import parse_button, build_keyboard
 from nana.modules.pm import welc_txt
@@ -42,8 +42,7 @@ GET_FORMAT = {
 async def inline_query_handler(client, query):
     string = query.query.lower()
     answers = []
-
-    if query.from_user.id != Owner:
+    if query.from_user.id not in AdminSettings:
         await client.answer_inline_query(query.id,
                                          results=answers,
                                          switch_pm_text="Sorry, this bot only for {}".format(OwnerName),
@@ -323,7 +322,6 @@ async def inline_query_handler(client, query):
                     ]
             if image:
                 answers.append(InlineQueryResultPhoto(
-                    id=uuid4(),
                     caption=msg,
                     photo_url=image,
                     parse_mode="markdown",
@@ -336,7 +334,6 @@ async def inline_query_handler(client, query):
                                                 )
             else:
                 answers.append(InlineQueryResultArticle(
-                    id=uuid4(),
                     title=f"{json['title']['romaji']}",
                     description=f"{json['averageScore']}",
                     input_message_content=InputTextMessageContent(msg, parse_mode="markdown", disable_web_page_preview=True),
