@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import traceback
+from io import StringIO
 from platform import python_version
 
 import requests
@@ -21,12 +22,8 @@ __HELP__ = """
 This command means for helping development
 
 ──「 **Execution** 」──
--> `py (command)`
-Execute a python commands.
-
-──「 **Evaluation** 」──
 -> `eval (command)`
-Do math evaluation.
+Python Shell Execution
 
 ──「 **Command shell** 」──
 -> `sh (command)`
@@ -73,15 +70,12 @@ async def pic(chat, photo, caption=None):
     await app.send_photo(chat, photo, caption)
 
 
-async def aexec(client, message, code):
-    # Make an async function with the code and `exec` it
+async def aexec(code, client, message):
     exec(
-        'async def __ex(client, message): ' +
+        f'async def __aexec(client, message): ' +
         ''.join(f'\n {l}' for l in code.split('\n'))
     )
-
-    # Get `__ex` from local variables, call it and return the result
-    return await locals()['__ex'](client, message)
+    return await locals()['__aexec'](client, message)
 
 
 @app.on_message(Filters.me & Filters.command("reveal", Command))
@@ -106,21 +100,54 @@ async def sd_reveal(client, message):
         os.remove(a)
 
 
-@app.on_message(Filters.me & Filters.command("py", Command))
+@app.on_message(Filters.me & Filters.command("eval", Command))
 async def executor(client, message):
-    if len(message.text.split()) == 1:
-        await msg(message, text="Usage: `py await msg(message, text='edited!')`")
-        return
-    args = message.text.split(None, 1)
-    code = args[1]
+    await msg(message, text="`Running ...`")
     try:
-        await aexec(client, message, code)
-    except Exception as e:
-        print(e)
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        errors = traceback.format_exception(etype=exc_type, value=exc_obj, tb=exc_tb)
-        await msg(message, text="**Execute**\n`{}`\n\n**Failed:**\n```{}```".format(code, "".join(errors)))
-        logging.exception("Execution error")
+        cmd = message.text.split(" ", maxsplit=1)[1]
+    except IndexError:
+        await message.delete()
+        return
+    reply_to_id = message.message_id
+    if message.reply_to_message:
+        reply_to_id = message.reply_to_message.message_id
+    old_stderr = sys.stderr
+    old_stdout = sys.stdout
+    redirected_output = sys.stdout = StringIO()
+    redirected_error = sys.stderr = StringIO()
+    stdout, stderr, exc = None, None, None
+    try:
+        await aexec(cmd, client, message)
+    except Exception:
+        exc = traceback.format_exc()
+    stdout = redirected_output.getvalue()
+    stderr = redirected_error.getvalue()
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    evaluation = ""
+    if exc:
+        evaluation = exc
+    elif stderr:
+        evaluation = stderr
+    elif stdout:
+        evaluation = stdout
+    else:
+        evaluation = "Success"
+    final_output = f"<b>QUERY</b>:\n<code>{cmd}</code>\n\n<b>OUTPUT</b>:\n<code>{evaluation.strip()}</code> \n"
+    if len(final_output) > 4096:
+        filename = 'output.txt'
+        with open(filename, "w+", encoding="utf8") as out_file:
+            out_file.write(str(evaluation.strip()))
+        await message.reply_document(
+            document=filename,
+            caption=cmd,
+            disable_notification=True,
+            reply_to_message_id=reply_to_id
+        )
+        os.remove(filename)
+        await message.delete()
+    else:
+        await msg(message, text=final_output)
 
 
 @app.on_message(Filters.me & Filters.command("ip", Command))
