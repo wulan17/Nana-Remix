@@ -1,7 +1,6 @@
 import sys
 import traceback
 import random
-from uuid import uuid4
 import requests
 import git
 import os
@@ -236,7 +235,6 @@ async def inline_query_handler(client, query):
                    InlineKeyboardButton("Passing by", callback_data="engine_pm_none")]]
         random.shuffle(button)
         answers.append(InlineQueryResultArticle(
-            id=uuid4(),
             title="Engine pm",
             description="Filter pm",
             input_message_content=InputTextMessageContent(welc_txt, parse_mode="markdown"),
@@ -252,7 +250,6 @@ async def inline_query_handler(client, query):
                     InlineKeyboardButton("Text",
                                         callback_data="speedtest_text")]]
         answers.append(InlineQueryResultArticle(
-            id=uuid4(),
             title="Speed Test",
             description="test your speed",
             input_message_content=InputTextMessageContent("Select SpeedTest Mode", parse_mode="markdown"),
@@ -280,7 +277,6 @@ async def inline_query_handler(client, query):
         text += f" - **Database**: `{DB_AVAILABLE}`\n"
         buttons = [[InlineKeyboardButton("stats", callback_data="alive_message")]]
         answers.append(InlineQueryResultArticle(
-            id=uuid4(),
             title="Alive",
             description="Nana Userbot",
             input_message_content=InputTextMessageContent(text, parse_mode="markdown", disable_web_page_preview=True),
