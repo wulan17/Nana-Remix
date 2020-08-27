@@ -11,11 +11,10 @@ from subprocess import PIPE, Popen
 from urllib.error import HTTPError
 
 from pySmartDL import SmartDL
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app, Command, AdminSettings
+from nana import app, Command, AdminSettings, edrep
 from .downloads import humanbytes
-from nana.helpers.PyroHelpers import msg
 
 
 async def subprocess_run(cmd, message):
@@ -25,7 +24,7 @@ async def subprocess_run(cmd, message):
     talk = subproc.communicate()
     exit_code = subproc.returncode
     if exit_code != 0:
-        await msg(message, text=
+        await edrep(message, text=
             '```An error was detected while running the subprocess:\n'
             f'exit code: {exit_code}\n'
             f'stdout: {talk[0]}\n'
@@ -34,10 +33,10 @@ async def subprocess_run(cmd, message):
     return talk
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("megadownload", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("megadownload", Command))
 async def mega_downloader(_client, message):
     args = message.text.split(None, 1)
-    await msg(message, text="`Processing...`")
+    await edrep(message, text="`Processing...`")
     msg_link = await message.reply_to_message.text
     link = args[1]
     if link:
@@ -45,19 +44,19 @@ async def mega_downloader(_client, message):
     elif msg_link:
         link = msg_link.text
     else:
-        await msg(message, text="Usage: `mega <mega url>`")
+        await edrep(message, text="Usage: `mega <mega url>`")
         return
     try:
         link = re.findall(r'\bhttps?://.*mega.*\.nz\S+', link)[0]
     except IndexError:
-        await msg(message, text="`No MEGA.nz link found`\n")
+        await edrep(message, text="`No MEGA.nz link found`\n")
         return
     cmd = f'bin/megadown -q -m {link}'
     result = await subprocess_run(cmd, message)
     try:
         data = json.loads(result[0])
     except json.JSONDecodeError:
-        await msg(message, text="`Error: Can't extract the link`\n")
+        await edrep(message, text="`Error: Can't extract the link`\n")
         return
     except TypeError:
         return
@@ -75,7 +74,7 @@ async def mega_downloader(_client, message):
     try:
         downloader.start(blocking=False)
     except HTTPError as e:
-        await msg(message, text="`" + str(e) + "`")
+        await edrep(message, text="`" + str(e) + "`")
         return
     while not downloader.isFinished():
         status = downloader.get_status().capitalize()
@@ -95,11 +94,11 @@ async def mega_downloader(_client, message):
                 f"\nETA: {estimated_total_time}"
             )
             if status == "Downloading":
-                await msg(message, text=current_message)
+                await edrep(message, text=current_message)
                 time.sleep(0.2)
             elif status == "Combining":
                 if display_message != current_message:
-                    await msg(message, text=current_message)
+                    await edrep(message, text=current_message)
                     display_message = current_message
         except Exception as e:
             print(e)
@@ -109,19 +108,19 @@ async def mega_downloader(_client, message):
         if exists(temp_file_name):
             await decrypt_file(
                 file_name, temp_file_name, hex_key, hex_raw_key, message)
-            await msg(message, text=f"`{file_name}`\n\n"
+            await edrep(message, text=f"`{file_name}`\n\n"
                               "Successfully downloaded\n"
                               f"Download took: {download_time}")
     else:
-        await msg(message, text="Failed to download, check heroku Log for details")
+        await edrep(message, text="Failed to download, check heroku Log for details")
         for e in downloader.get_errors():
-            msg(message, text=str(e))
+            await edrep(message, text=str(e))
     return
 
 
 async def decrypt_file(file_name, temp_file_name,
                        hex_key, hex_raw_key, message):
-    await msg(message, text="Decrypting file...")
+    await edrep(message, text="Decrypting file...")
     cmd = ("cat '{}' | openssl enc -d -aes-128-ctr -K {} -iv {} > '{}'"
            .format(temp_file_name, hex_key, hex_raw_key, file_name))
     await subprocess_run(cmd, message)

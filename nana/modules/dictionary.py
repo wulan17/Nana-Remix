@@ -1,9 +1,8 @@
 import asyncio
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app, Command, AdminSettings
+from nana import app, Command, AdminSettings, edrep
 from nana.helpers.aiohttp_helper import AioHttp
-from nana.helpers.PyroHelpers import msg
 
 
 __HELP__ = """
@@ -15,7 +14,7 @@ Search dictionary for given words
 __MODULE__ = "Dictionary"
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("dic", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("dic", Command))
 async def dictionary(_client, message):
     cmd = message.command
     input_ = ""
@@ -24,7 +23,7 @@ async def dictionary(_client, message):
     elif message.reply_to_message and len(cmd) == 1:
         input_ = message.reply_to_message.text
     elif not message.reply_to_message and len(cmd) == 1:
-        await msg(message, text="`Can't pass to the void.`")
+        await edrep(message, text="`Can't pass to the void.`")
         await asyncio.sleep(2)
         await message.delete()
         return
@@ -91,7 +90,8 @@ async def dictionary(_client, message):
         return out
 
     if not input_:
-        await msg(message, text="`Plz enter word to search‼️`")
+        await edrep(message, text="`query not found`")
+        return
     else:
         word = input_
         r_dec = await AioHttp().get_json(f"https://api.dictionaryapi.dev/api/v1/entries/en/{word}")
@@ -102,6 +102,6 @@ async def dictionary(_client, message):
             v_word = r_dec['word']
         last_output = out_print(r_dec)
         if last_output:
-            await msg(message, text="`Search reasult for   `" + f" {v_word}\n\n" + last_output)
+            await edrep(message, text="`Search reasult for   `" + f" {v_word}\n\n" + last_output)
         else:
-            await msg(message, text='`No result found from the database.`')
+            await edrep(message, text='`No result found from the database.`')

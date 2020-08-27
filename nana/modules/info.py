@@ -2,12 +2,12 @@ from datetime import datetime
 from time import sleep
 import spamwatch
 
-from pyrogram import Filters, User
-from pyrogram.api import functions
+from pyrogram import filters
+from pyrogram.types import User
+from pyrogram.raw import functions
 from pyrogram.errors import PeerIdInvalid
 
-from nana import app, Command, sw_api, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import app, Command, sw_api, AdminSettings, edrep
 
 __MODULE__ = "Whois"
 __HELP__ = """
@@ -51,7 +51,7 @@ def ProfilePicUpdate(user_pic):
     return datetime.fromtimestamp(user_pic[0].date).strftime("%d.%m.%Y, %H:%M:%S")
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("info", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("info", Command))
 async def whois(client, message):
     cmd = message.command
     if not message.reply_to_message and len(cmd) == 1:
@@ -70,7 +70,7 @@ async def whois(client, message):
     try:
         user = await client.get_users(get_user)
     except PeerIdInvalid:
-        await msg(message, text="I don't know that User.")
+        await edrep(message, text="I don't know that User.")
         sleep(2)
         await message.delete()
         return
@@ -83,7 +83,7 @@ async def whois(client, message):
             sw = spamwatch.Client(sw_api)
             status = sw.get_ban(user.id)
             if status == False:
-                await msg(message, text=f"""
+                await edrep(message, text=f"""
 **About [{user.first_name} {user.last_name if user.last_name else ''}](tg://user?id={user.id})**:
   - **UserID**: `{user.id}`
   - **Username**: {'@'+user.username if user.username else ''}
@@ -94,7 +94,7 @@ async def whois(client, message):
                 """,
                 disable_web_page_preview=True)
             else:
-                await msg(message, text=f"""
+                await edrep(message, text=f"""
 **About [{user.first_name} {user.last_name if user.last_name else ''}](tg://user?id={user.id})**:
   - **UserID**: `{user.id}`
   - **Username**: {'@'+user.username if user.username else ''}
@@ -108,7 +108,7 @@ async def whois(client, message):
                 disable_web_page_preview=True)
             return
         else:
-            await msg(message, text=f"""
+            await edrep(message, text=f"""
 **About [{user.first_name} {user.last_name if user.last_name else ''}](tg://user?id={user.id})**:
   - **UserID**: `{user.id}`
   - **Username**: {'@'+user.username if user.username else ''}

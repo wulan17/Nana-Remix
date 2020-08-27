@@ -2,10 +2,9 @@ import asyncio
 import aiohttp
 import os
 
-from pyrogram import Filters
-from nana import Command, app, AdminSettings
+from pyrogram import filters
+from nana import Command, app, AdminSettings, edrep
 from nana.helpers.aiohttp_helper import AioHttp
-from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Nekobin"
 __HELP__ = """
@@ -16,7 +15,7 @@ Create a Nekobin paste using replied to message.
 """
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("neko", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("neko", Command))
 async def paste(client, message):
     if message.reply_to_message:
         text = message.reply_to_message.text
@@ -65,14 +64,14 @@ async def paste(client, message):
             )
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command(["gpaste"], Command))
+@app.on_message(filters.user(AdminSettings) & filters.command(["gpaste"], Command))
 async def get_paste_(_client, message):
     """fetches the content of a dogbin or nekobin URL."""
     link = message.reply_to_message.text
     if not link:
-        await msg(message, text="input not found!")
+        await edrep(message, text="input not found!")
         return
-    await msg(message, text="`Getting paste content...`")
+    await edrep(message, text="`Getting paste content...`")
     format_view = 'https://del.dog/v/'
     if link.startswith(format_view):
         link = link[len(format_view):]
@@ -90,8 +89,7 @@ async def get_paste_(_client, message):
         link = link[len("nekobin.com/"):]
         raw_link = f'https://nekobin.com/raw/{link}'
     else:
-        await msg(message, text="Is that even a paste url?")
+        await edrep(message, text="Is that even a paste url?")
         return
     resp = await AioHttp().get_text(raw_link)
-    await msg(message, text=
-        f"**URL content** :\n`{resp}`")
+    await edrep(message, text=f"**URL content** :\n`{resp}`")

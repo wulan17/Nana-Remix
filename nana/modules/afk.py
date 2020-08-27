@@ -1,8 +1,10 @@
 import time
 
-from pyrogram import Filters, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import filters
 
-from nana import app, setbot, Owner, OwnerName, Command, DB_AVAILABLE
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+from nana import app, setbot, Owner, OwnerName, Command, DB_AVAILABLE, edrep
 from nana.helpers.msg_types import Types, get_message_type
 from nana.helpers.parser import mention_markdown, escape_markdown
 
@@ -32,7 +34,7 @@ AFK_RESTIRECT = {}
 DELAY_TIME = 60  # seconds
 
 
-@app.on_message(Filters.me & (Filters.command("afk", Command)))
+@app.on_message(filters.me & (filters.command("afk", Command)))
 async def afk(_client, message):
     if not DB_AVAILABLE:
         await message.edit("Your database is not avaiable!")
@@ -51,7 +53,7 @@ async def afk(_client, message):
     await message.stop_propagation()
 
 
-@app.on_message(Filters.mentioned & ~Filters.bot, group=11)
+@app.on_message(filters.mentioned & ~filters.bot, group=11)
 async def afk_mentioned(_client, message):
     if not DB_AVAILABLE:
         return
@@ -69,10 +71,9 @@ async def afk_mentioned(_client, message):
             return
         AFK_RESTIRECT[cid] = int(time.time()) + DELAY_TIME
         if get['reason']:
-            await message.reply(
-                "Sorry, {} is AFK!\nBecause of {}".format(mention_markdown(Owner, OwnerName), get['reason']))
+            await edrep(message, text=f"Sorry, {mention_markdown(Owner, OwnerName)} is AFK!\nBecause of {get['reason']}")
         else:
-            await message.reply("Sorry, {} is AFK!".format(mention_markdown(Owner, OwnerName)))
+            await edrep(message, text=f"Sorry, {mention_markdown(Owner, OwnerName)} is AFK!")
 
         _, message_type = get_message_type(message)
         if message_type == Types.TEXT:
@@ -90,7 +91,7 @@ async def afk_mentioned(_client, message):
             len(MENTIONED)), reply_markup=button)
 
 
-@app.on_message(Filters.me & Filters.group, group=12)
+@app.on_message(filters.me & filters.group, group=12)
 async def no_longer_afk(_client, message):
     if not DB_AVAILABLE:
         return

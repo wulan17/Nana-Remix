@@ -1,9 +1,9 @@
 import re
 import sre_constants
 
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app
+from nana import app, edrep, AdminSettings
 
 __MODULE__ = "Sed"
 __HELP__ = """
@@ -75,7 +75,7 @@ async def separate_sed(sed_string):
     return replace, replace_with, flags.lower()
 
 
-@app.on_message(Filters.me & Filters.regex("^s/(.*?)"))
+@app.on_message(filters.user(AdminSettings) & filters.regex("^s/(.*?)"))
 async def sed_msg(client, message):
     sed_result = await separate_sed("s/" + message.text)
     if sed_result:
@@ -106,9 +106,7 @@ async def sed_msg(client, message):
                 text = re.sub(repl, repl_with, to_fix, count=1).strip()
         except sre_constants.error:
             print("SRE constant error")
-            await message.edit("SRE constant error. You can learn regex in [here](https://regexone.com)",
-                               disable_web_page_preview=True)
+            await edrep(message, text="SRE constant error. You can learn regex in [here](https://regexone.com)", disable_web_page_preview=True)
             return
         if text:
-            await client.edit_message_text(message.chat.id, message_id=message.message_id,
-                                           text="Did you you mean:\n```{}```".format(text))
+            await edrep(message, text="```{}```".format(text))

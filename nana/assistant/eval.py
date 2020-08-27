@@ -3,30 +3,65 @@ import sys
 import os
 import re
 import subprocess
+from io import StringIO
 
-from pyrogram import Filters
+from pyrogram import filters
 
 from nana import Owner, logging, setbot
 from nana.modules.devs import aexec
 
 
-@setbot.on_message(Filters.user(Owner) & Filters.command(["py"]))
-async def executor(client, message):
-    if len(message.text.split()) == 1:
-        await message.reply("Usage: `/py await message.reply('edited!')`")
-        return
-    args = message.text.split(None, 1)
-    code = args[1]
+@setbot.on_message(filters.user(Owner) & filters.command(["eval"]))
+async def eval(client, message):
+    status_message = await message.reply_text("`Running ...`")
     try:
-        await aexec(client, message, code)
-    except:
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        errors = traceback.format_exception(etype=exc_type, value=exc_obj, tb=exc_tb)
-        await message.reply("**Execute**\n`{}`\n\n**Failed:**\n```{}```".format(code, "".join(errors)))
-        logging.exception("Execution error")
+        cmd = message.text.split(" ", maxsplit=1)[1]
+    except IndexError:
+        await status_message.delete()
+        return
+    reply_to_id = message.message_id
+    if message.reply_to_message:
+        reply_to_id = message.reply_to_message.message_id
+    old_stderr = sys.stderr
+    old_stdout = sys.stdout
+    redirected_output = sys.stdout = StringIO()
+    redirected_error = sys.stderr = StringIO()
+    stdout, stderr, exc = None, None, None
+    try:
+        await aexec(cmd, client, message)
+    except Exception:
+        exc = traceback.format_exc()
+    stdout = redirected_output.getvalue()
+    stderr = redirected_error.getvalue()
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    evaluation = ""
+    if exc:
+        evaluation = exc
+    elif stderr:
+        evaluation = stderr
+    elif stdout:
+        evaluation = stdout
+    else:
+        evaluation = "Success"
+    final_output = f"<b>OUTPUT</b>:\n<code>{evaluation.strip()}</code>"
+    if len(final_output) > 4096:
+        filename = 'output.txt'
+        with open(filename, "w+", encoding="utf8") as out_file:
+            out_file.write(str(final_output))
+        await message.reply_document(
+            document=filename,
+            caption=cmd,
+            disable_notification=True,
+            reply_to_message_id=reply_to_id
+        )
+        os.remove(filename)
+        await status_message.delete()
+    else:
+        await status_message.edit(final_output)
 
 
-@setbot.on_message(Filters.user(Owner) & Filters.command(["sh"]))
+@setbot.on_message(filters.user(Owner) & filters.command(["sh"]))
 async def terminal(client, message):
     if len(message.text.split()) == 1:
         await message.reply("Usage: `/sh ping -c 5 google.com`")
@@ -47,12 +82,9 @@ async def terminal(client, message):
             except Exception as err:
                 print(err)
                 await message.reply("""
-**Input:**
-```{}```
-
 **Error:**
 ```{}```
-""".format(teks, err))
+""".format(err))
             output += "**{}**\n".format(code)
             output += process.stdout.read()[:-1].decode("utf-8")
             output += "\n"
@@ -69,7 +101,7 @@ async def terminal(client, message):
         except Exception as err:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             errors = traceback.format_exception(etype=exc_type, value=exc_obj, tb=exc_tb)
-            await message.reply("""**Input:**\n```{}```\n\n**Error:**\n```{}```""".format(teks, "".join(errors)))
+            await message.reply("""**Error:**\n```{}```""".format("".join(errors)))
             return
         output = process.stdout.read()[:-1].decode("utf-8")
     if str(output) == "\n":
@@ -83,6 +115,6 @@ async def terminal(client, message):
                                        caption="`Output file`")
             os.remove("nana/cache/output.txt")
             return
-        await message.reply("""**Input:**\n```{}```\n\n**Output:**\n```{}```""".format(teks, output))
+        await message.reply(f"**Output:**\n```{output}```", parse_mode='markdown')
     else:
-        await message.reply("**Input: **\n`{}`\n\n**Output: **\n`No Output`".format(teks))
+        await message.reply("**Output:**\n`No Output`")

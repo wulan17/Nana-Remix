@@ -1,11 +1,10 @@
 
 
-from pyrogram import Filters
+from pyrogram import filters
 from asyncio import sleep
 import subprocess
 
-from nana import Command, app, TERMUX_USER, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import Command, app, TERMUX_USER, AdminSettings, edrep
 
 __MODULE__ = "Termux"
 __HELP__ = """
@@ -23,39 +22,39 @@ Turn your Device's Torch on & off   .
 """
 torch = False
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("bstats", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("bstats", Command))
 async def bstat(_client, message):
     if TERMUX_USER:
         termux_command = subprocess.Popen("termux-battery-status", shell=True, stdout=subprocess.PIPE)
         my_bytes_value = termux_command.stdout.read()
         my_json = my_bytes_value.decode('utf8').replace("'", '').replace('"', '').replace("{", '').replace("}", '').replace(",", '').replace(" ", '').replace(":", ': ')
-        await msg(message, text=f"<b>Battery Status:</b>{my_json}")
+        await edrep(message, text=f"<b>Battery Status:</b>{my_json}")
     else:
-        await msg(message, text="This command is only for Termux users!")
+        await edrep(message, text="This command is only for Termux users!")
         await sleep(2.0)
         await message.delete()
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("torch", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("torch", Command))
 async def termux_torch(_client, message):
     global torch
     if torch:
-        await msg(message, text="Turning off torch...")
+        await edrep(message, text="Turning off torch...")
         await sleep(0.5)
         subprocess.Popen("termux-torch off", shell=True, stdout=subprocess.PIPE)
         torch = False
-        await msg(message, text="Torch turned off")
+        await edrep(message, text="Torch turned off")
     else:
-        await msg(message, text="Turning on torch...")
+        await edrep(message, text="Turning on torch...")
         try:
             subprocess.Popen("termux-torch on", shell=True, stdout=subprocess.PIPE)
         except Exception as e:
             print(e)
-            await msg(message, text="Couldn't turn off torch!")
+            await edrep(message, text="Couldn't turn off torch!")
             await sleep(2.0)
             await message.delete()
             return
         torch = True
-        await msg(message, text="Torch turned on!")
+        await edrep(message, text="Torch turned on!")
     await sleep(2.0)
     await message.delete()

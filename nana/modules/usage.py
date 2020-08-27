@@ -3,9 +3,8 @@ import asyncio
 
 import heroku3
 import requests
-from pyrogram import Filters
-from nana import app, Command, HEROKU_API, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from pyrogram import filters
+from nana import app, Command, HEROKU_API, AdminSettings, edrep
 
 # ================= CONSTANT =================
 Heroku = heroku3.from_key(HEROKU_API)
@@ -13,7 +12,7 @@ heroku_api = "https://api.heroku.com"
 # ================= CONSTANT =================
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("usage", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("usage", Command))
 async def usage(client, message):
     useragent = ('Mozilla/5.0 (Linux; Android 10; SM-G975F) '
                  'AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -27,7 +26,7 @@ async def usage(client, message):
     path = "/accounts/" + u_id + "/actions/get-quota"
     r = requests.get(heroku_api + path, headers=headers)
     if r.status_code != 200:
-        return await msg(message, text="`Error: something bad happened`\n\n"
+        return await edrep(message, text="`Error: something bad happened`\n\n"
                                   f">.`{r.reason}`\n")
     result = r.json()
     quota = result['account_quota']
@@ -54,4 +53,4 @@ async def usage(client, message):
     message_usage += f"**Available in month**: `{hours}`**h**  `{minutes}`**m** |  `{percentage}`**%**"
     await asyncio.sleep(1.5)
 
-    await msg(message, text=message_usage)
+    await edrep(message, text=message_usage)

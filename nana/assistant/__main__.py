@@ -3,13 +3,8 @@ import time
 from platform import python_version
 
 import heroku3
-from pyrogram import (
-    Filters,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton,
-    errors,
-    ReplyKeyboardMarkup,
-)
+from pyrogram import filters, errors
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 
 from nana import (
     app,
@@ -32,7 +27,7 @@ if DB_AVAILABLE:
     from nana.modules.database.chats_db import get_all_chats
 
 
-@setbot.on_message(Filters.private & ~Filters.user(AdminSettings))
+@setbot.on_message(filters.private & ~filters.user(AdminSettings))
 async def un_auth(_client, message):
     if message.chat.id is not AdminSettings:
         msg = f"""
@@ -59,7 +54,7 @@ Here are some links for you
         return
 
 
-@setbot.on_message(Filters.user(AdminSettings) & Filters.command(["start"]))
+@setbot.on_message(filters.user(AdminSettings) & filters.command(["start"]))
 async def start(_client, message):
     if message.chat.type != "private":
         await message.reply(f"こんにちは, {OwnerName}! ^_^")
@@ -114,7 +109,7 @@ Convert a text to various style, can be used anywhere!
         await setbot.send_message(Owner, start_message, reply_markup=buttons)
 
 
-@setbot.on_message(Filters.user(Owner) & Filters.command(["getme"]))
+@setbot.on_message(filters.user(Owner) & filters.command(["getme"]))
 async def get_myself(client, message):
     try:
         me = await app.get_me()
@@ -145,7 +140,7 @@ async def get_myself(client, message):
 
 
 @setbot.on_message(
-    Filters.user(Owner) & Filters.command(["settings"]) & Filters.private
+    filters.user(Owner) & filters.command(["settings"]) & filters.private
 )
 async def settings(_client, message):
     try:
@@ -184,11 +179,10 @@ async def settings(_client, message):
 
 # For callback query button
 def dynamic_data_filter(data):
-    return Filters.create(
-        lambda flt, query: flt.data == query.data,
-        data=data,  # "data" kwarg is accessed with "flt.data" above
-    )
-
+    async def func(flt, _, query):
+        return flt.data == query.data
+    # "data" kwarg is accessed with "flt.data" above
+    return filters.create(func, data=data)
 
 @setbot.on_callback_query(dynamic_data_filter("hide_number"))
 async def get_myself_btn(client, query):
@@ -278,7 +272,7 @@ async def start_stop_bot(client, query):
     text += "\n❎ Bot was stopped!"
     list_button = [
         [
-            InlineKeyboardButton("Stop Bot", callback_data="toggle_startbot"),
+            InlineKeyboardButton("Start Bot", callback_data="toggle_startbot"),
             InlineKeyboardButton("Restart Bot", callback_data="restart_bot"),
         ]
     ]
@@ -353,13 +347,12 @@ async def reboot_heroku(client, query):
     text += "-> Assistant: `Running (v{})`\n".format(ASSISTANT_VERSION)
     text += "-> Database: `{}`\n".format(DB_AVAILABLE)
     text += "-> Python: `{}`\n".format(python_version())
-    togglestart = "Start Bot" if not me else "Stop Bot"
-    list_button = [
-        [
-            InlineKeyboardButton(togglestart, callback_data="toggle_startbot"),
-            InlineKeyboardButton("Restart Bot", callback_data="restart_bot"),
-        ]
-    ]
+    if not me:
+        togglestart = "Start Bot"
+    else:
+        togglestart = "Stop Bot"
+    list_button = [[InlineKeyboardButton(togglestart, callback_data="toggle_startbot"),
+                    InlineKeyboardButton("Restart Bot", callback_data="restart_bot")]]
     if HEROKU_API:
         list_button.append(
             [InlineKeyboardButton("Restart Heroku app", callback_data="restart_heroku")]
@@ -484,7 +477,7 @@ USER_SET = {}
 TODEL = {}
 
 
-@setbot.on_message(Filters.user(AdminSettings) & Filters.command(["setsticker"]))
+@setbot.on_message(filters.user(AdminSettings) & filters.command(["setsticker"]))
 async def get_stickers(_client, message):
     if not DB_AVAILABLE:
         await message.edit("Your database is not avaiable!")
@@ -510,7 +503,7 @@ async def get_stickers(_client, message):
 # app.read_history("@Stickers")
 
 
-@setbot.on_message(Filters.user(AdminSettings) & Filters.command(["setanimation"]))
+@setbot.on_message(filters.user(AdminSettings) & filters.command(["setanimation"]))
 async def get_stickers_animation(_client, message):
     if not DB_AVAILABLE:
         await message.edit("Your database is not avaiable!")
@@ -536,7 +529,7 @@ async def get_stickers_animation(_client, message):
 # app.read_history("@Stickers")
 
 
-def get_stickerlist(message):
+async def get_stickerlist(message):
     if not DB_AVAILABLE:
         return
     global TEMP_KEYBOARD, USER_SET
@@ -547,7 +540,14 @@ def get_stickerlist(message):
         USER_SET = {}
 
 
-@setbot.on_message(get_stickerlist)
+async def sticker_list(_, __, query):
+    return query == get_stickerlist
+
+
+static_sticker_filter = filters.create(sticker_list)
+
+
+@setbot.on_message(static_sticker_filter)
 async def set_stickers(client, message):
     if not DB_AVAILABLE:
         await message.edit("Your database is not avaiable!")
@@ -560,10 +560,12 @@ async def set_stickers(client, message):
         elif USER_SET["type"] == 2:
             set_stanim_set(message.from_user.id, message.text)
         status = "Ok, sticker was set to `{}`".format(message.text)
+        TEMP_KEYBOARD = []
+        USER_SET = {}
     else:
         status = "Invalid pack selected."
-    USER_SET = {}
-    TEMP_KEYBOARD = []
+        TEMP_KEYBOARD = []
+        USER_SET = {}
     try:
         me = await app.get_me()
     except ConnectionError:
@@ -577,6 +579,10 @@ async def set_stickers(client, message):
     text += "-> Database: `{}`\n".format(DB_AVAILABLE)
     text += "-> Python: `{}`\n".format(python_version())
     text += "\n{}".format(status)
+    if not me:
+        pass
+    else:
+        pass
     list_button = [
         [
             InlineKeyboardButton("Stop Bot", callback_data="toggle_startbot"),

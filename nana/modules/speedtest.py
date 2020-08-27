@@ -1,14 +1,14 @@
-from pyrogram import Filters
+from pyrogram import filters
 from nana import setbot, AdminSettings, BotUsername, app, Command
 from nana.helpers.PyroHelpers import ReplyCheck
 import speedtest
 import re
 
-def speedtest_callback(_, query):
+def speedtest_callback(_, __, query):
     if re.match("speedtest", query.data):
         return True
 
-speedtest_create = Filters.create(speedtest_callback)
+speedtest_create = filters.create(speedtest_callback)
 
 def speed_convert(size):
     """Hi human, you can't read bytes?"""
@@ -45,7 +45,7 @@ async def speedtestxyz_callback(client, query):
         await client.answer_callback_query(query.id, "No, you are not allowed to do this", show_alert=False)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("speedtest", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("speedtest", Command))
 async def google_search(client, message):
     x = await client.get_inline_bot_results(f"{BotUsername}", f"speedtest")
     await message.delete()

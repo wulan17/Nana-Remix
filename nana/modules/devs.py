@@ -8,14 +8,13 @@ from io import StringIO
 from platform import python_version
 
 import requests
-from pyrogram import Filters
+from pyrogram import filters
 import pyrogram as p
 
-from nana import Command, logging, app
+from nana import Command, logging, app, edrep
 from nana.helpers.deldog import deldog
 from nana.helpers.parser import mention_markdown
 from nana.helpers.aiohttp_helper import AioHttp
-from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Devs"
 __HELP__ = """
@@ -78,7 +77,7 @@ async def aexec(code, client, message):
     return await locals()['__aexec'](client, message)
 
 
-@app.on_message(Filters.me & Filters.command("reveal", Command))
+@app.on_message(filters.me & filters.command("reveal", Command))
 async def sd_reveal(client, message):
     cmd = message.command
     self_tag = " ".join(cmd[1:])
@@ -100,9 +99,8 @@ async def sd_reveal(client, message):
         os.remove(a)
 
 
-@app.on_message(Filters.me & Filters.command("eval", Command))
+@app.on_message(filters.me & filters.command("eval", Command))
 async def executor(client, message):
-    await msg(message, text="`Running ...`")
     try:
         cmd = message.text.split(" ", maxsplit=1)[1]
     except IndexError:
@@ -133,7 +131,7 @@ async def executor(client, message):
         evaluation = stdout
     else:
         evaluation = "Success"
-    final_output = f"<b>QUERY</b>:\n<code>{cmd}</code>\n\n<b>OUTPUT</b>:\n<code>{evaluation.strip()}</code> \n"
+    final_output = f"<b>QUERY</b>:\n<code>{cmd}</code>\n\n<b>OUTPUT</b>:\n<code>{evaluation.strip()}</code>"
     if len(final_output) > 4096:
         filename = 'output.txt'
         with open(filename, "w+", encoding="utf8") as out_file:
@@ -147,10 +145,10 @@ async def executor(client, message):
         os.remove(filename)
         await message.delete()
     else:
-        await msg(message, text=final_output)
+        await edrep(message, text=final_output)
 
 
-@app.on_message(Filters.me & Filters.command("ip", Command))
+@app.on_message(filters.me & filters.command("ip", Command))
 async def public_ip(_client, message):
     j = await AioHttp().get_json("http://ip-api.com/json")
     stats = f"**ISP {j['isp']}:**\n"
@@ -161,14 +159,14 @@ async def public_ip(_client, message):
     stats += f"**Lattitude:** `{j['lat']}`\n"
     stats += f"**Longitude:** `{j['lon']}`\n"
     stats += f"**Time Zone:** `{j['timezone']}`"
-    await msg(message, text=stats, parse_mode='markdown')
+    await edrep(message, text=stats, parse_mode='markdown')
 
 
 
-@app.on_message(Filters.me & Filters.command("sh", Command))
+@app.on_message(filters.me & filters.command("sh", Command))
 async def terminal(client, message):
     if len(message.text.split()) == 1:
-        await msg(message, text="Usage: `sh ping -c 5 google.com`")
+        await edrep(message, text="Usage: `sh ping -c 5 google.com`")
         return
     args = message.text.split(None, 1)
     teks = args[1]
@@ -185,7 +183,7 @@ async def terminal(client, message):
                 )
             except Exception as err:
                 print(err)
-                await msg(message, text="""
+                await edrep(message, text="""
 **Input:**
 ```{}```
 
@@ -208,7 +206,7 @@ async def terminal(client, message):
         except Exception as err:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             errors = traceback.format_exception(etype=exc_type, value=exc_obj, tb=exc_tb)
-            await msg(message, text="""**Input:**\n```{}```\n\n**Error:**\n```{}```""".format(teks, "".join(errors)))
+            await edrep(message, text="""**Input:**\n```{}```\n\n**Error:**\n```{}```""".format(teks, "".join(errors)))
             return
         output = process.stdout.read()[:-1].decode("utf-8")
     if str(output) == "\n":
@@ -222,19 +220,19 @@ async def terminal(client, message):
                                        caption="`Output file`")
             os.remove("nana/cache/output.txt")
             return
-        await msg(message, text="""**Input:**\n```{}```\n\n**Output:**\n```{}```""".format(teks, output))
+        await edrep(message, text="""**Input:**\n```{}```\n\n**Output:**\n```{}```""".format(teks, output))
     else:
-        await msg(message, text="**Input: **\n`{}`\n\n**Output: **\n`No Output`".format(teks))
+        await edrep(message, text="**Input: **\n`{}`\n\n**Output: **\n`No Output`".format(teks))
 
 
-@app.on_message(Filters.me & Filters.command(["log"], Command))
+@app.on_message(filters.me & filters.command(["log"], Command))
 async def log(_client, message):
     f = open("nana/logs/error.log", "r")
     data = await deldog(message, f.read())
-    await msg(message, text=f"`Your recent logs stored here : `{data}")
+    await edrep(message, text=f"`Your recent logs stored here : `{data}", disable_web_page_preview=True)
 
 
-@app.on_message(Filters.me & Filters.command("dc", Command))
+@app.on_message(filters.me & filters.command("dc", Command))
 async def dc_id_check(_client, message):
     user = message.from_user
     if message.reply_to_message:
@@ -261,10 +259,10 @@ async def dc_id_check(_client, message):
         text = "{}'s assigned datacenter is **DC5**, located in **SIN, Singapore, SG**".format(user)
     else:
         text = "{}'s assigned datacenter is **Unknown**".format(user)
-    await msg(message, text=text)
+    await edrep(message, text=text)
 
 
-@app.on_message(Filters.me & Filters.command("id", Command))
+@app.on_message(filters.me & filters.command("id", Command))
 async def get_id(_client, message):
     file_id = None
     user_id = None
@@ -329,7 +327,7 @@ async def get_id(_client, message):
         else:
             user_detail = f"**User ID**: `{message.reply_to_message.from_user.id}`\n"
         user_detail += f"**Message ID**: `{message.reply_to_message.message_id}`"
-        await msg(message, text=user_detail)
+        await edrep(message, text=user_detail)
     elif file_id:
         if rep.forward_from:
             user_detail = f"**Forwarded User ID**: `{message.reply_to_message.forward_from.id}`\n"
@@ -337,6 +335,6 @@ async def get_id(_client, message):
             user_detail = f"**User ID**: `{message.reply_to_message.from_user.id}`\n"
         user_detail += f"**Message ID**: `{message.reply_to_message.message_id}`\n\n"
         user_detail += file_id
-        await msg(message, text=user_detail)
+        await edrep(message, text=user_detail)
     else:
-        await msg(message, text=f"**Chat ID**: `{message.chat.id}`")
+        await edrep(message, text=f"**Chat ID**: `{message.chat.id}`")

@@ -6,7 +6,7 @@ from time import time
 from coffeehouse.api import API
 from coffeehouse.lydia import LydiaAI
 from coffeehouse.exception import CoffeeHouseError as CFError
-from pyrogram import Filters
+from pyrogram import filters
 
 from nana import setbot, AdminSettings, lydia_api, Owner, BotUsername, BotID
 import nana.modules.meme_strings as meme_strings
@@ -16,7 +16,7 @@ CoffeeHouseAPI = API(lydia_api)
 api_client = LydiaAI(CoffeeHouseAPI)
 
 
-@setbot.on_message(Filters.user(AdminSettings) & Filters.command(["addchat"]))
+@setbot.on_message(filters.user(AdminSettings) & filters.command(["addchat"]))
 async def add_chat(_client, message):
     global api_client
     chat_id = message.chat.id
@@ -31,7 +31,7 @@ async def add_chat(_client, message):
         await message.reply("AI is already enabled for this chat!")
 
 
-@setbot.on_message(Filters.user(AdminSettings) & Filters.command(["rmchat"]))
+@setbot.on_message(filters.user(AdminSettings) & filters.command(["rmchat"]))
 async def remove_chat(_client, message):
     chat_id = message.chat.id
     is_chat = sql.is_chat(chat_id)
@@ -42,7 +42,7 @@ async def remove_chat(_client, message):
         await message.reply("AI disabled successfully!")
 
 
-@setbot.on_message(~Filters.me & ~Filters.edited & (Filters.group | Filters.private), group=2)
+@setbot.on_message(~filters.me & ~filters.edited & (filters.group | filters.private), group=2)
 async def chat_bot(client, message):
     global api_client
     chat_id = message.chat.id

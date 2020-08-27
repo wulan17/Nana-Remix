@@ -2,10 +2,10 @@ import math
 import requests
 import asyncio
 
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app, Command, AdminSettings, BotUsername
-from nana.helpers.PyroHelpers import msg, ReplyCheck
+from nana import app, Command, AdminSettings, BotUsername, edrep
+from nana.helpers.PyroHelpers import ReplyCheck
 
 
 __MODULE__ = "Anilist"
@@ -179,11 +179,11 @@ query ($id: Int,$search: String) {
 url = 'https://graphql.anilist.co'
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("airing", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("airing", Command))
 async def anime_airing(_client, message):
     search_str = message.text.split(' ', 1)
     if len(search_str) == 1:
-        await msg(message, text='Format: `airing <anime name>`')
+        await edrep(message, text='Format: `airing <anime name>`')
         return
     variables = {'search': search_str[1]}
     response = requests.post(
@@ -195,17 +195,17 @@ async def anime_airing(_client, message):
         ms_g += f"\n**Episode**: `{response['nextAiringEpisode']['episode']}`\n**Airing In**: `{airing_time_final}`"
     else:
         ms_g += f"\n**Episode**:{response['episodes']}\n**Status**: `N/A`"
-    await msg(message, text=ms_g)
+    await edrep(message, text=ms_g)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("anime", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("anime", Command))
 async def anime_search(client, message):
     cmd = message.command
     mock = ""
     if len(cmd) > 1:
         mock = " ".join(cmd[1:])
     elif len(cmd) == 1:
-        await msg(message, text="`Format: anime <anime name>`")
+        await edrep(message, text="`Format: anime <anime name>`")
         await asyncio.sleep(2)
         await message.delete()
         return
@@ -218,7 +218,7 @@ async def anime_search(client, message):
                                         hide_via=True)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("character", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("character", Command))
 async def character_search(client, message):
     search = message.text.split(' ', 1)
     if len(search) == 1:
@@ -239,10 +239,10 @@ async def character_search(client, message):
             await message.delete()
             await client.send_photo(message.chat.id, photo=image, caption=ms_g)
         else:
-            await msg(message, text=ms_g)
+            await edrep(message, text=ms_g)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("manga", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("manga", Command))
 async def manga_search(client, message):
     search = message.text.split(' ', 1)
     if len(search) == 1:
@@ -281,6 +281,6 @@ async def manga_search(client, message):
                 await client.send_photo(message.chat.id, photo=image, caption=ms_g)
             except:
                 ms_g += f" [〽️]({image})"
-                await msg(message, text=ms_g)
+                await edrep(message, text=ms_g)
         else:
-            await msg(message, text=ms_g)
+            await edrep(message, text=ms_g)
