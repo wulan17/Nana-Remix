@@ -7,6 +7,8 @@ import sys
 import time
 from inspect import getfullargspec
 
+from .startup.var import get_var
+
 from pydrive.auth import GoogleAuth
 from pyrogram import Client, errors
 from pyrogram.types import Message
@@ -17,17 +19,9 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 StartTime = time.time()
 
 
-ENV = bool(os.environ.get('ENV', False))
-if ENV:
-    TEST_DEVELOP = bool(os.environ.get('TEST_DEVELOP', False))
-else:
-    try:
-        from nana.config import Development as Config
-    except ModuleNotFoundError:
-        logging.error("You need to place config.py in nana dir!")
-        quit(1)
-    TEST_DEVELOP = Config.TEST_MODE
-    PM_PERMIT = Config.PM_PERMIT
+
+TEST_DEVELOP = bool(get_var('TEST_DEVELOP', False))
+
 
 if TEST_DEVELOP:
     logging.warning("Testing mode activated!")
@@ -49,108 +43,63 @@ RANDOM_STICKERS = ["CAADAgAD6EoAAuCjggf4LTFlHEcvNAI", "CAADAgADf1AAAuCjggfqE-GQn
 BOT_SESSION = "nana/session/ManageBot"
 APP_SESSION = "nana/session/Nana"
 
-if ENV:
-    # Logger
-    logger = os.environ.get('LOGGER', True)
-    # Version
-    lang_code = os.environ.get('lang_code', "en")
-    device_model = os.environ.get('device_model', "PC")
-    system_version = os.environ.get('system_version', "Linux")
-    time_country = os.environ.get("time_country", None)
 
-    # Must be filled
-    api_id = os.environ.get('api_id', None)
-    api_hash = os.environ.get('api_hash', None)
+# Logger
+logger = get_var('LOGGER', True)
+# Version
+lang_code = get_var('lang_code', "en")
+device_model = get_var('device_model', "PC")
+system_version = get_var('system_version', "Linux")
+time_country = get_var("time_country", None)
 
-    # Session
-    USERBOT_SESSION = os.environ.get('USERBOT_SESSION', None)
-    ASSISTANT_SESSION = os.environ.get('ASSISTANT_SESSION', None)
+# Must be filled
+api_id = get_var('api_id', None)
+api_hash = get_var('api_hash', None)
 
-    # From config
-    Command = os.environ.get("Command", "! . - ^").split()
-    NANA_WORKER = int(os.environ.get('NANA_WORKER', 8))
-    ASSISTANT_WORKER = int(os.environ.get('ASSISTANT_WORKER', 2))
+# Session
+USERBOT_SESSION = get_var('USERBOT_SESSION', None)
+ASSISTANT_SESSION = get_var('ASSISTANT_SESSION', None)
 
-    try:
-        TEST_DEVELOP = bool(os.environ.get('TEST_DEVELOP', False))
-        if TEST_DEVELOP:
-            BOT_SESSION = os.environ.get('BOT_SESSION', None)
-            APP_SESSION = os.environ.get('APP_SESSION', None)
-        else:
-            raise AttributeError
-    except AttributeError:
-        pass
+# From config
+Command = get_var("Command", "!")
+NANA_WORKER = int(get_var('NANA_WORKER', 8))
+ASSISTANT_WORKER = int(get_var('ASSISTANT_WORKER', 2))
 
-    # APIs
-    thumbnail_API = os.environ.get('thumbnail_API', None)
-    screenshotlayer_API = os.environ.get('screenshotlayer_API', None)
-    bitly_token = [os.environ.get('bitly_token', None)]
-    gdrive_credentials = os.environ.get('gdrive_credentials', None)
-    lydia_api = os.environ.get('lydia_api', None)
-    remove_bg_api = os.environ.get('remove_bg_api', None)
-    sw_api = os.environ.get('sw_api', None)
-    HEROKU_API = os.environ.get('HEROKU_API', None)
-    IBM_WATSON_CRED_URL = os.environ.get('IBM_WATSON_CRED_URL', None)
-    IBM_WATSON_CRED_PASSWORD = os.environ.get('IBM_WATSON_CRED_PASSWORD', None)
-    # LOADER
-    USERBOT_LOAD = os.environ.get("USERBOT_LOAD", "").split()
-    USERBOT_NOLOAD = os.environ.get("USERBOT_NOLOAD", "").split()
-    ASSISTANT_LOAD = os.environ.get("ASSISTANT_LOAD", "").split()
-    ASSISTANT_NOLOAD = os.environ.get("ASSISTANT_NOLOAD", "").split()
+try:
+    TEST_DEVELOP = bool(get_var('TEST_DEVELOP', False))
+    if TEST_DEVELOP:
+        BOT_SESSION = get_var('BOT_SESSION', None)
+        APP_SESSION = get_var('APP_SESSION', None)
+    else:
+        raise AttributeError
+except AttributeError:
+    pass
 
-    DB_URI = os.environ.get('DB_URI', "postgres://username:password@localhost:5432/database")
-    ASSISTANT_BOT_TOKEN = os.environ.get('ASSISTANT_BOT_TOKEN', None)
-    AdminSettings = [int(x) for x in os.environ.get("AdminSettings", "").split()]
-    REMINDER_UPDATE = bool(os.environ.get('REMINDER_UPDATE', True))
-    TEST_MODE = bool(os.environ.get('TEST_MODE', False))
-    TERMUX_USER = os.environ.get('TERMUX_USER', False)
-    NANA_IMG = os.environ.get('NANA_IMG', False)
-    PM_PERMIT = os.environ.get('PM_PERMIT', False)
-else:
-    # logger
-    logger = Config.LOGGER
-    # Version
-    lang_code = Config.lang_code
-    device_model = Config.device_model
-    system_version = Config.system_version
+# APIs
+thumbnail_API = get_var('thumbnail_API', None)
+screenshotlayer_API = get_var('screenshotlayer_API', None)
+bitly_token = [get_var('bitly_token', None)]
+gdrive_credentials = get_var('gdrive_credentials', None)
+lydia_api = get_var('lydia_api', None)
+remove_bg_api = get_var('remove_bg_api', None)
+sw_api = get_var('sw_api', None)
+HEROKU_API = get_var('HEROKU_API', None)
+IBM_WATSON_CRED_URL = get_var('IBM_WATSON_CRED_URL', None)
+IBM_WATSON_CRED_PASSWORD = get_var('IBM_WATSON_CRED_PASSWORD', None)
+# LOADER
+USERBOT_LOAD = get_var("USERBOT_LOAD", "")
+USERBOT_NOLOAD = get_var("USERBOT_NOLOAD", "")
+ASSISTANT_LOAD = get_var("ASSISTANT_LOAD", "")
+ASSISTANT_NOLOAD = get_var("ASSISTANT_NOLOAD", "")
 
-    # Must be filled
-    api_id = Config.api_id
-    api_hash = Config.api_hash
-
-    # Session
-    USERBOT_SESSION = Config.USERBOT_SESSION
-    ASSISTANT_SESSION = Config.ASSISTANT_SESSION
-    # From config
-    Command = Config.Command
-    NANA_WORKER = Config.NANA_WORKER
-    ASSISTANT_WORKER = Config.ASSISTANT_WORKER
-
-    # APIs
-    thumbnail_API = Config.thumbnail_API
-    sw_api = Config.sw_api
-    screenshotlayer_API = Config.screenshotlayer_API
-    bitly_token = [Config.bitly_token]
-    gdrive_credentials = Config.gdrive_credentials
-    lydia_api = Config.lydia_api
-    HEROKU_API = Config.HEROKU_API
-    remove_bg_api = Config.remove_bg_api
-    NANA_IMG = Config.NANA_IMG
-    IBM_WATSON_CRED_URL = Config.IBM_WATSON_CRED_URL
-    IBM_WATSON_CRED_PASSWORD = Config.IBM_WATSON_CRED_PASSWORD
-    time_country = Config.time_country
-    # LOADER
-    USERBOT_LOAD = Config.USERBOT_LOAD
-    USERBOT_NOLOAD = Config.USERBOT_NOLOAD
-    ASSISTANT_LOAD = Config.ASSISTANT_LOAD
-    ASSISTANT_NOLOAD = Config.ASSISTANT_NOLOAD
-
-    DB_URI = Config.DB_URI
-    ASSISTANT_BOT_TOKEN = Config.ASSISTANT_BOT_TOKEN
-    AdminSettings = Config.AdminSettings
-    REMINDER_UPDATE = Config.REMINDER_UPDATE
-    TEST_MODE = Config.TEST_MODE
-    TERMUX_USER = Config.TERMUX_USER
+DB_URI = get_var('DB_URI', "postgres://username:password@localhost:5432/database")
+ASSISTANT_BOT_TOKEN = get_var('ASSISTANT_BOT_TOKEN', None)
+AdminSettings = [int(x) for x in get_var("AdminSettings", "")]
+REMINDER_UPDATE = bool(get_var('REMINDER_UPDATE', True))
+TEST_MODE = bool(get_var('TEST_MODE', False))
+TERMUX_USER = get_var('TERMUX_USER', False)
+NANA_IMG = get_var('NANA_IMG', False)
+PM_PERMIT = get_var('PM_PERMIT', False)
 OwnerName = ""
 app_version = "💝 Nana v{}".format(USERBOT_VERSION)
 BotUsername = ""
@@ -160,6 +109,7 @@ BotID = 0
 Owner = 0
 BotName = ""
 OwnerUsername = ""
+
 if os.path.exists("nana/logs/error.log"):
     f = open("nana/logs/error.log", "w")
     f.write("PEAK OF THE LOGS FILE")
