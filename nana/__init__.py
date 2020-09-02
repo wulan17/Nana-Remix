@@ -94,7 +94,7 @@ ASSISTANT_NOLOAD = get_var("ASSISTANT_NOLOAD", "")
 
 DB_URI = get_var('DB_URI', "postgres://username:password@localhost:5432/database")
 ASSISTANT_BOT_TOKEN = get_var('ASSISTANT_BOT_TOKEN', None)
-AdminSettings = [int(x) for x in get_var("AdminSettings", "")]
+AdminSettings = [int(x) for x in get_var("AdminSettings", "").split()]
 REMINDER_UPDATE = bool(get_var('REMINDER_UPDATE', True))
 TEST_MODE = bool(get_var('TEST_MODE', False))
 TERMUX_USER = get_var('TERMUX_USER', False)
