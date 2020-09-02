@@ -102,7 +102,7 @@ async def stats(_client, message):
         text += "<b>Group joined:</b> `{} groups`\n".format(len(get_all_chats()))
     stk = await app.send(functions.messages.GetAllStickers(hash=0))
     all_sets = stk.sets
-    count = sum([x.count for x in all_sets])
+    count = sum(x.count for x in all_sets)
     text += f"<b>Stickers Count:</b> <code>{count} across {len(all_sets)} sets</code>\n"
     text += "<b>Message received:</b> `{} messages`\n".format(get_msgc())
     uptime = get_readable_time((time.time() - StartTime))

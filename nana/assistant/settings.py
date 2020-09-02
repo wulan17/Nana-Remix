@@ -37,10 +37,7 @@ async def get_text_settings():
 
 async def get_button_settings():
     me = await is_userbot_run()
-    if me:
-        toggle = "Stop Bot"
-    else:
-        toggle = "Start Bot"
+    toggle = "Stop Bot" if me else "Start Bot"
     list_button = [[InlineKeyboardButton(toggle, callback_data="toggle_startbot"),
                     InlineKeyboardButton("Restart Bot", callback_data="restart_bot")],
                 #    [InlineKeyboardButton("Set Sticker", callback_data="setsticker")]
