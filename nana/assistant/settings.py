@@ -56,7 +56,7 @@ async def get_button_settings():
 async def settings(_client, message):
     text = await get_text_settings()
     button = await get_button_settings()
-    await setbot.send_photo(Owner, NANA_IMG, caption=text, reply_markup=button)
+    await setbot.send_photo(message.chat.id, NANA_IMG, caption=text, reply_markup=button)
 
 
 @setbot.on_callback_query(dynamic_data_filter("toggle_startbot"))
@@ -150,4 +150,4 @@ async def vars_heroku(_client, query):
 async def back(_client, message):
     text = await get_text_settings()
     button = await get_button_settings()
-    await setbot.send_photo(Owner, NANA_IMG, caption=text, reply_markup=button)
+    await setbot.send_photo(message.chat.id, NANA_IMG, caption=text, reply_markup=button)

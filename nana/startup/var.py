@@ -5,7 +5,7 @@ def get_var(name, default=None):
     if ENV:
         return environ.get(name, default)
     else:
-        from nana.config import Development as Config
+        from nana.config import Development as Config # pylint: disable=import-error
         try:
             return getattr(Config, name)
         except AttributeError:

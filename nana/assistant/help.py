@@ -1,7 +1,7 @@
 import re
 import time
 
-from __main__ import HELP_COMMANDS
+from __main__ import HELP_COMMANDS # pylint: disable-msg=E0611
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.raw import functions

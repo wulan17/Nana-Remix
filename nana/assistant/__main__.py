@@ -84,7 +84,7 @@ Convert a text to various style, can be used anywhere!
     start_message += "`For more about the bot press button down below`"
     buttons = InlineKeyboardMarkup(
         [[InlineKeyboardButton(text="Help", callback_data="help_back")]])
-    await setbot.send_photo(Owner, NANA_IMG, caption=start_message, reply_markup=buttons)
+    await setbot.send_photo(message.chat.id, NANA_IMG, caption=start_message, reply_markup=buttons)
 
 
 @setbot.on_message(filters.user(AdminSettings) & filters.command(["getme"]))
