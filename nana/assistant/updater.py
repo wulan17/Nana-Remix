@@ -2,7 +2,8 @@ import random
 
 from git import Repo
 from git.exc import GitCommandError, NoSuchPathError, InvalidGitRepositoryError
-from pyrogram import Filters, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from nana import (
     setbot,
     Owner,
@@ -17,6 +18,7 @@ from nana import (
     HEROKU_API,
 )
 from nana.__main__ import restart_all, loop
+from nana.assistant.__main__ import dynamic_data_filter
 
 
 async def gen_chlog(repo, diff):
@@ -81,14 +83,6 @@ async def update_checker():
         [[InlineKeyboardButton("🔄 Update Now!", callback_data="update_now")]]
     )
     await setbot.send_message(Owner, text, reply_markup=button, parse_mode="markdown")
-
-
-# For callback query button
-def dynamic_data_filter(data):
-    return Filters.create(
-        lambda flt, query: flt.data == query.data,
-        data=data,  # "data" kwarg is accessed with "flt.data" above
-    )
 
 
 @setbot.on_callback_query(dynamic_data_filter("update_now"))

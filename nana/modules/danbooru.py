@@ -1,8 +1,7 @@
 import requests
 from asyncio import sleep
-from pyrogram import Filters
-from nana import app, Command, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from pyrogram import filters
+from nana import app, Command, AdminSettings, edrep
 __MODULE__ = "Danbooru"
 __HELP__ = """
 This module can search images in danbooru and send in to the chat!
@@ -13,9 +12,9 @@ Search images from Danbooru.
 
 """
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("animu", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("animu", Command))
 async def danbooru(client, message):
-    await msg(message, text="`Processing…`")
+    await edrep(message, text="`Processing…`")
 
     rating = "Explicit" if "nsfw" in message.command[1] else "Safe"
     search_query = ' '.join(message.command[2:])
@@ -28,13 +27,13 @@ async def danbooru(client, message):
         if response.status_code == 200:
             response = response.json()
         else:
-            await msg(message, text=f"`An error occurred, response code:` **{response.status_code}**")
+            await edrep(message, text=f"`An error occurred, response code:` **{response.status_code}**")
             await sleep(5)
             await message.delete()
             return
 
     if not response:
-        await msg(message, text=f"`No results for query:` __{search_query}__")
+        await edrep(message, text=f"`No results for query:` __{search_query}__")
         await sleep(5)
         await message.delete()
         return
@@ -47,7 +46,7 @@ async def danbooru(client, message):
 
 
     if not valid_urls:
-        await msg(message, text=f"`Failed to find URLs for query:` __{search_query}__")
+        await edrep(message, text=f"`Failed to find URLs for query:` __{search_query}__")
         await sleep(5)
         await message.delete()
         return
@@ -58,6 +57,6 @@ async def danbooru(client, message):
             return
         except Exception as e:
             print(e)
-    await msg(message, text=f"``Failed to fetch media for query:` __{search_query}__")
+    await edrep(message, text=f"``Failed to fetch media for query:` __{search_query}__")
     await sleep(5)
     await message.delete()

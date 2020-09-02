@@ -1,14 +1,13 @@
 import re
 
 from asyncio import sleep
-from pyrogram import Filters
+from pyrogram import filters
 from pyrogram.errors import MessageNotModified
-from nana import app, Command, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import app, Command, AdminSettings, edrep
 
 __MODULE__ = "Vulgar"
 __HELP__ = """
-Filters Bad Words
+filters Bad Words
 
 ──「 **Vulgar Filter** 」──
 -> `vulgar`
@@ -24,7 +23,7 @@ bad_words = ['nigga', 'nigger', 'coon', 'bitch']
 f_word = ['fuck', 'suck']
 
 
-@app.on_message(~Filters.regex(r"^\.\w*") & Filters.me)
+@app.on_message(~filters.regex(r"^\.\w*") & filters.me)
 async def vulgar_f(_client, message):
     if not vulgar_filter:
         return
@@ -51,14 +50,14 @@ async def vulgar_f(_client, message):
         return
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("vulgar", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("vulgar", Command))
 async def vulgar_trigger(_client, message):
     global vulgar_filter
     if vulgar_filter:
         vulgar_filter = False
-        await msg(message, text="Message will not be filtered")
+        await edrep(message, text="Message will not be filtered")
     else:
         vulgar_filter = True
-        await msg(message, text="Message will be filtered")
+        await edrep(message, text="Message will be filtered")
     await sleep(5)
     await message.delete()

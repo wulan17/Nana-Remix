@@ -8,12 +8,11 @@ from asyncio import sleep
 from glob import iglob
 from random import randint
 
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app, Command, AdminSettings
+from nana import app, Command, AdminSettings, edrep
 from nana.helpers.PyroHelpers import ReplyCheck
 from nana.helpers.aiohttp_helper import AioHttp
-from nana.helpers.PyroHelpers import msg
 
 __MODULE__ = "Github"
 __HELP__ = """
@@ -25,17 +24,17 @@ Finding information about a github user.
 
 """
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("git", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("git", Command))
 async def github(client, message):
     if len(message.text.split()) == 1:
-            await msg(message, text="Usage: `git (username)`")
+            await edrep(message, text="Usage: `git (username)`")
             return
     username = message.text.split(None, 1)[1]
     URL = f"https://api.github.com/users/{username}"
     async with aiohttp.ClientSession() as session:
         async with session.get(URL) as request:
             if request.status == 404:
-                return await msg(message, text="`" + username + " not found`")
+                return await edrep(message, text="`" + username + " not found`")
 
             result = await request.json()
 
@@ -62,7 +61,7 @@ async def github(client, message):
             drawing = svg2rlg(f"{file_name}.svg")
             renderPM.drawToFile(drawing, f"{file_name}.png")
         except UnboundLocalError:
-            await msg(message, text="Username does not exist!")
+            await edrep(message, text="Username does not exist!")
             await sleep(2)
             await message.delete()
             return
@@ -72,8 +71,7 @@ async def github(client, message):
             photo=f"{file_name}.png",
             caption=REPLY,
             reply_to_message_id=ReplyCheck(message)
-            ),
-        message.delete()
+            )
     )
     for file in iglob(f"{file_name}.*"):
         os.remove(file)

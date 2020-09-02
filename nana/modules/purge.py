@@ -1,11 +1,10 @@
 import math
 from datetime import datetime
 import asyncio
-from pyrogram import Filters
+from pyrogram import filters
 
 from nana.helpers.admincheck import admin_check
-from nana import Owner, app, Command, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import Owner, app, Command, AdminSettings, edrep
 
 __MODULE__ = "Purges"
 __HELP__ = """
@@ -34,7 +33,7 @@ Delete's a message that you reply to
 """
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("purge", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("purge", Command))
 async def purge_message(client, message):
     if message.chat.type in (("supergroup", "channel")):
         is_admin = await admin_check(message)
@@ -75,12 +74,12 @@ async def purge_message(client, message):
     await ms_g.delete()
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("purgeme", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("purgeme", Command))
 async def purge_myself(client, message):
     if len(message.text.split()) >= 2 and message.text.split()[1].isdigit():
         target = int(message.text.split()[1])
     else:
-        await msg(message, text="Give me a number for a range!")
+        await edrep(message, text="Give me a number for a range!")
     get_msg = await client.get_history(message.chat.id)
     listall = []
     counter = 0
@@ -110,7 +109,7 @@ async def purge_myself(client, message):
         await client.delete_messages(message.chat.id, message_ids=listall)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("del", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("del", Command))
 async def delete_replied(client, message):
     msg_ids = [message.message_id]
     if message.reply_to_message:

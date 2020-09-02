@@ -1,9 +1,8 @@
 import os
 
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app, Command, DB_AVAILABLE, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import app, Command, DB_AVAILABLE, AdminSettings, edrep
 
 if DB_AVAILABLE:
     from nana.modules.database.chats_db import update_chat, get_all_chats
@@ -27,7 +26,7 @@ Deletes a Message Replied with this command.
 def get_msgc():
     return MESSAGE_RECOUNTER
 
-@app.on_message(Filters.group, group=10)
+@app.on_message(filters.group, group=10)
 async def updatemychats(_client, message):
     global MESSAGE_RECOUNTER
     if DB_AVAILABLE:
@@ -35,10 +34,10 @@ async def updatemychats(_client, message):
     MESSAGE_RECOUNTER += 1
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("chatlist", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("chatlist", Command))
 async def get_chat(client, message):
     if not DB_AVAILABLE:
-        await msg(message, text="Your database is not avaiable!")
+        await edrep(message, text="Your database is not avaiable!")
         return
     all_chats = get_all_chats()
     chatfile = 'List of chats that I joined.\n'
@@ -54,5 +53,5 @@ async def get_chat(client, message):
 
     await client.send_document("self", document="nana/cache/chatlist.txt",
                                caption="Here is the chat list that I joined.")
-    await msg(message, text="My chat list exported to my saved messages.")
+    await edrep(message, text="My chat list exported to my saved messages.")
     os.remove("nana/cache/chatlist.txt")

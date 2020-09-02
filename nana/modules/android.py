@@ -1,9 +1,8 @@
 import requests
 from asyncio import sleep
 
-from nana import app, Command, AdminSettings
-from pyrogram import Filters
-from nana.helpers.PyroHelpers import msg
+from nana import app, Command, AdminSettings, edrep
+from pyrogram import filters
 
 __MODULE__ = "Device"
 __HELP__ = """
@@ -19,10 +18,10 @@ Usage: `device (codename)`
 DEVICE_LIST = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("device", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("device", Command))
 async def get_device(_client, message):
     if len(message.text.split()) == 1:
-        await msg(message, text="Usage: `device (codename)`")
+        await edrep(message, text="Usage: `device (codename)`")
         return
     getlist = requests.get(DEVICE_LIST).json()
     target_device = message.text.split()[1].lower()
@@ -32,8 +31,8 @@ async def get_device(_client, message):
         for x in device:
             text += f"Brand: `{x['brand']}`\nName: `{x['name']}`\nDevice: `{x['model']}`\nCodename: `{target_device}`"
             text += "\n\n"
-        await msg(message, text=text)
+        await edrep(message, text=text)
     else:
-        await msg(message, text=f"Device {target_device} was not found!")
+        await edrep(message, text=f"Device {target_device} was not found!")
         await sleep(5)
         await message.delete()

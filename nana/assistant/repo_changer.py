@@ -4,17 +4,13 @@ import os
 import urllib.request
 from git import Repo
 from nana import HEROKU_API, setbot
-from pyrogram import Filters, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+from nana.assistant.__main__ import dynamic_data_filter
 
 repo_name = ""
 repo_docker = ""
-
-# For callback query button
-def dynamic_data_filter(data):
-    return Filters.create(
-        lambda flt, query: flt.data == query.data,
-        data=data  # "data" kwarg is accessed with "flt.data" above
-    )
 
 
 async def change_repo(url):
@@ -76,7 +72,7 @@ async def chgrepo(_client, query):
     await query.message.edit_text(text, reply_markup=button)
 
 
-@setbot.on_callback_query(Filters.regex("^Nana"))
+@setbot.on_callback_query(filters.regex("^Nana"))
 async def chgrepoo(_client, query):
     rp = await configrepo()
     global repo_name
@@ -94,7 +90,7 @@ async def chgrepoo(_client, query):
     await query.message.edit_text(text, reply_markup=button)
 
 
-@setbot.on_callback_query(Filters.regex("^vs"))
+@setbot.on_callback_query(filters.regex("^vs"))
 async def selectversion(_client, query):
     ver = query.data[2:]
     rp = await configrepo()
@@ -114,7 +110,7 @@ async def selectversion(_client, query):
     button = InlineKeyboardMarkup(list_button)
     await query.message.edit_text(text, reply_markup=button)
 
-@setbot.on_callback_query(Filters.regex("chg_repo"))
+@setbot.on_callback_query(filters.regex("chg_repo"))
 async def select_version(_client, query):
     global repo_docker
     text = "Repo Changed! It will take up to 5 minutes, Please Wait...."

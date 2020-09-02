@@ -4,14 +4,17 @@ import random
 import requests
 import git
 import os
-from pyrogram import InlineQueryResultArticle, __version__, InlineQueryResultPhoto
-from pyrogram import errors, InlineKeyboardMarkup, InputTextMessageContent, InlineKeyboardButton
+from datetime import datetime
+from pyrogram import errors, __version__
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputTextMessageContent, InlineQueryResultArticle, InlineQueryResultPhoto
+from pyrogram.errors import PeerIdInvalid
 from platform import python_version
 
 from nana import setbot, Owner, OwnerName, DB_AVAILABLE, app, USERBOT_VERSION, AdminSettings
 from nana.helpers.msg_types import Types
 from nana.helpers.string import parse_button, build_keyboard
 from nana.modules.pm import welc_txt
+from nana.helpers.aiohttp_helper import AioHttp
 from nana.modules.animelist import url, anime_query, shorten
 from nana.modules.stylish import text_style_generator, formatting_text_inline, CHAR_OVER, \
     CHAR_UNDER, CHAR_STRIKE, graffiti, graffitib, CHAR_POINTS, upsidedown_text_inline, smallcaps, superscript, \
@@ -41,6 +44,7 @@ GET_FORMAT = {
 async def inline_query_handler(client, query):
     string = query.query.lower()
     answers = []
+
     if query.from_user.id not in AdminSettings:
         await client.answer_inline_query(query.id,
                                          results=answers,
@@ -286,6 +290,13 @@ async def inline_query_handler(client, query):
                                          cache_time=0
                                          )
     elif string.split()[0] == "anime":
+        if len(string.split()) == 1:
+            await client.answer_inline_query(query.id,
+                                             results=answers,
+                                             switch_pm_text="Search an Anime",
+                                             switch_pm_parameter="help_inline"
+                                             )
+            return
         search = string.split(None, 1)[1]
         variables = {'search' : search}
         json = requests.post(url, json={'query': anime_query, 'variables': variables}).json()['data'].get('Media', None)
@@ -338,4 +349,75 @@ async def inline_query_handler(client, query):
                                                 results=answers,
                                                 cache_time=0
                                                 )
+
+    elif string.split()[0] == "cat":
+        image = f"https://d2ph5fj80uercy.cloudfront.net/0{random.randint(1, 6)}/cat{random.randint(0,4999)}.jpg"
+        buttons = [[InlineKeyboardButton("Source", url="https://thiscatdoesnotexist.com/")]]
+        answers.append(InlineQueryResultPhoto(
+                caption='Hi I like you too >~<',
+                photo_url=image,
+                parse_mode="markdown",
+                title="Cursed Cat",
+                description="Cursed Cat",
+                reply_markup=InlineKeyboardMarkup(buttons)))
+        await client.answer_inline_query(query.id,
+                                        results=answers,
+                                        cache_time=0
+                                        )
+
+    if string.split()[0] == "lookup":
+        if len(string.split()) == 1:
+            await client.answer_inline_query(query.id,
+                                             results=answers,
+                                             switch_pm_text="Search in SpamProtection Database",
+                                             switch_pm_parameter="help_inline"
+                                             )
+        get_user = string.split(None, 1)[1]
+        try:
+            user = await app.get_chat(get_user)
+        except PeerIdInvalid:
+            await client.answer_inline_query(query.id,
+                                             results=answers,
+                                             switch_pm_text="Can't Find the Chat in Database",
+                                             switch_pm_parameter="help_inline"
+                                             )
+            return
+        api_url = f'https://api.intellivoid.net/spamprotection/v1/lookup?query={user.id}'
+        a = await AioHttp().get_json(api_url)
+        response = a['success']
+        if response == True:
+            date = a["results"]["last_updated"]
+            stats = f'**◢ Intellivoid• SpamProtection Info**:\n'
+            stats += f' - **Updated on**: `{datetime.fromtimestamp(date).strftime("%Y-%m-%d %I:%M:%S %p")}`\n'
+            if a["results"]["attributes"]["is_potential_spammer"] == True:
+                stats += f' - **User**: `USERxSPAM`\n'
+            elif a["results"]["attributes"]["is_operator"] == True:
+                stats += f' - **User**: `USERxOPERATOR`\n'
+            elif a["results"]["attributes"]["is_agent"] == True:
+                stats += f' - **User**: `USERxAGENT`\n'
+            elif a["results"]["attributes"]["is_whitelisted"] == True:
+                stats += f' - **User**: `USERxWHITELISTED`\n'
+        
+            stats += f' - **Type**: `{a["results"]["entity_type"]}`\n'
+            stats += f' - **Language**: `{a["results"]["language_prediction"]["language"]}`\n'
+            stats += f' - **Language Probability**: `{a["results"]["language_prediction"]["probability"]}`\n'
+            stats += f'**Spam Prediction**:\n'
+            stats += f' - **Ham Prediction**: `{a["results"]["spam_prediction"]["ham_prediction"]}`\n'
+            stats += f' - **Spam Prediction**: `{a["results"]["spam_prediction"]["spam_prediction"]}`\n'
+            stats += f'**Blacklisted**: `{a["results"]["attributes"]["is_blacklisted"]}`\n'
+            if a["results"]["attributes"]["is_blacklisted"] == True:
+                stats += f' - **Reason**: `{a["results"]["attributes"]["blacklist_reason"]}`\n'
+                stats += f' - **Flag**: `{a["results"]["attributes"]["blacklist_flag"]}`\n'
+            stats += f'**TELEGRAM HASH**:\n`{a["results"]["private_telegram_id"]}`\n'
+        buttons = [[InlineKeyboardButton("Logs", url="https://t.me/SpamProtectionLogs"),
+                    InlineKeyboardButton('Info', url=f't.me/SpamProtectionBot/?start=00_{user.id}')]]
+        answers.append(InlineQueryResultArticle(
+            title=f'{a["results"]["entity_type"]}',
+            description=f'{a["results"]["private_telegram_id"]}',
+            input_message_content=InputTextMessageContent(stats, parse_mode="markdown", disable_web_page_preview=True),
+            reply_markup=InlineKeyboardMarkup(buttons)))
+        await client.answer_inline_query(query.id,
+                                        results=answers,
+                                        cache_time=0
+                                        )
         return

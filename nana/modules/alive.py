@@ -2,16 +2,11 @@
 import time
 import re
 
-from pyrogram import Filters
+from pyrogram import filters
 
 from nana import setbot, AdminSettings, BotUsername, app, Command, OwnerUsername, StartTime
 from nana.helpers.PyroHelpers import ReplyCheck
-
-def alive_callback(_, query):
-    if re.match("alive_message", query.data):
-        return True
-
-alive_create = Filters.create(alive_callback)
+from nana.assistant.__main__ import dynamic_data_filter
 
 
 def get_readable_time(seconds: int) -> str:
@@ -39,7 +34,7 @@ def get_readable_time(seconds: int) -> str:
     return ping_time
 
 
-@setbot.on_callback_query(alive_create)
+@setbot.on_callback_query(dynamic_data_filter("alive_message"))
 async def  alivemsg_callback(client, query):
     start_time = time.time()
     uptime = get_readable_time((time.time() - StartTime))
@@ -52,7 +47,7 @@ async def  alivemsg_callback(client, query):
     await client.answer_callback_query(query.id, reply_msg, show_alert=True)
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("alive", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("alive", Command))
 async def google_search(client, message):
     x = await client.get_inline_bot_results(f"{BotUsername}", "alive")
     await message.delete()

@@ -4,7 +4,8 @@ import sys
 import time
 import traceback
 
-from pyrogram import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import idle
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 from nana import app, Owner, log, setbot, get_self, get_bot
 from nana.assistant import ALL_SETTINGS
@@ -128,7 +129,7 @@ async def start_bot():
     if TEST_DEVELOP:
         log.warning("Test is passed!")
     else:
-        await setbot.idle()
+        await idle()
 
 
 if __name__ == '__main__':

@@ -3,10 +3,9 @@ import asyncio
 import aiohttp
 from html import escape
 
-from pyrogram import Filters
+from pyrogram import filters
 
-from nana import app, Command, AdminSettings
-from nana.helpers.PyroHelpers import msg
+from nana import app, Command, AdminSettings, edrep
 
 
 __MODULE__ = "Weather"
@@ -20,10 +19,10 @@ Powered by `wttr.in`
 """
 
 
-@app.on_message(Filters.user(AdminSettings) & Filters.command("wttr", Command))
+@app.on_message(filters.user(AdminSettings) & filters.command("wttr", Command))
 async def weather(_client, message):
     if len(message.command) == 1:
-        await msg(message, text="Usage: `wttr Maldives`")
+        await edrep(message, text="Usage: `wttr Maldives`")
         await asyncio.sleep(3)
         await message.delete()
 
@@ -37,10 +36,10 @@ async def weather(_client, message):
                     data = await resp.text()
         except Exception as e:
             print(e)
-            await msg(message, text="Failed to get the weather forecast")
+            await edrep(message, text="Failed to get the weather forecast")
 
         if 'we processed more than 1M requests today' in data:
-            await msg(message, text="`Sorry, we cannot process this request today!`")
+            await edrep(message, text="`Sorry, we cannot process this request today!`")
         else:
             weather_data = f"<code>{escape(data.replace('report', 'Report'))}</code>"
-            await msg(message, text=weather_data, parse_mode='html')
+            await edrep(message, text=weather_data, parse_mode='html')
