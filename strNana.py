@@ -9,7 +9,8 @@ API_HASH = input("enter Telegram API HASH: ")
 async def main(api_id, api_hash):
     """generate StringSession for the current MemorySession"""
     async with Client(":memory:", api_id=api_id, api_hash=api_hash) as app:
-        print(app.export_session_string())
+        a = await app.export_session_string()
+        print(a)
 
 if __name__ == "__main__":
 	loop = asyncio.get_event_loop()
