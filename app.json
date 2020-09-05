@@ -154,10 +154,5 @@
       "description": "Read SpamWatch Docs on How to obtain api, https://docs.spamwat.ch/",
       "required": false
     }
-  },
-  "buildpacks": [
-    {
-      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-    }
-  ]
+  }
 }
