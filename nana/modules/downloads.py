@@ -184,7 +184,7 @@ async def direct_link_generator(_client, message):
         if 'drive.google.com' in link:
             reply += gdrive(link)
         elif 'zippyshare.com' in link:
-            reply += zippy_share(link)
+            reply += 'Zippy Share disabled of security reasons'
         elif 'yadi.sk' in link:
             reply += yandex_disk(link)
         elif 'mediafire.com' in link:
@@ -242,35 +242,6 @@ def gdrive(url: str) -> str:
         if 'accounts.google.com' in dl_url:
             reply += 'Link is not public!'
             return reply
-    reply += f'[{name}]({dl_url})\n'
-    return reply
-
-
-def zippy_share(url: str) -> str:
-    """ZippyShare direct links generator"""
-    reply = ''
-    dl_url = ''
-    try:
-        link = re.findall(r'\bhttps?://.*zippyshare\.com\S+', url)[0]
-    except IndexError:
-        reply = "`No ZippyShare links found`\n"
-        return reply
-    session = requests.Session()
-    base_url = re.search('http.+.com', link).group()
-    response = session.get(link)
-    page_soup = BeautifulSoup(response.content, "lxml")
-    scripts = page_soup.find_all("script", {"type": "text/javascript"})
-    for script in scripts:
-        if "getElementById('dlbutton')" in script.text:
-            url_raw = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
-                                script.text).group('url')
-            mathh = re.search(r'= (?P<url>\".+\" \+ (?P<math>\(.+\)) .+);',
-                              script.text).group('math')
-            dl_url = url_raw.replace(mathh, '"' + str(eval(mathh)) + '"')
-            break
-    print(f'Here is the url thingy: {dl_url}')
-    dl_url = base_url + eval(dl_url)
-    name = urllib.parse.unquote(dl_url.split('/')[-1])
     reply += f'[{name}]({dl_url})\n'
     return reply
 
