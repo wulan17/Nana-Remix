@@ -66,7 +66,7 @@ RUN pip3 install --upgrade pip setuptools
 
 
 # Copy Python Requirements to /root/nana
-RUN git clone https://github.com/pokurt/Nana-Remix.git /root/nana
+RUN git clone https://github.com/wulan17/Nana-Remix.git /root/nana
 WORKDIR /root/nana
 
 #Copy config file to /root/nana/nana
