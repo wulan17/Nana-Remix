@@ -266,12 +266,12 @@ async def inline_query_handler(client, query):
         repo = git.Repo(os.getcwd())
         master = repo.head.reference
         commit_id = master.commit.hexsha
-        commit_link = f"[{commit_id[:7]}](https://github.com/pokurt/Nana-Remix/commit/{commit_id})"
+        commit_link = f"[{commit_id[:7]}](https://github.com/wulan17/Nana-Remix/commit/{commit_id})"
         try:
             me = await app.get_me()
         except ConnectionError:
             me = None
-        text = f"**[Nana-Remix](https://github.com/pokurt/Nana-Remix) Running on {commit_link}:**\n"
+        text = f"**[Nana-Remix](https://github.com/wulan17/Nana-Remix) Running on {commit_link}:**\n"
         if not me:
             text += f" - **Bot**: `stopped (v{USERBOT_VERSION})`\n"
         else:

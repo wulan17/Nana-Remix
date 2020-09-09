@@ -44,7 +44,7 @@ USERBOT_VERSION = "2.1"
 ASSISTANT_VERSION = "2.1"
 
 OFFICIAL_BRANCH = ('master')
-REPOSITORY = "https://github.com/pokurt/Nana-Remix.git"
+REPOSITORY = "https://github.com/wulan17/Nana-Remix.git"
 RANDOM_STICKERS = ["CAADAgAD6EoAAuCjggf4LTFlHEcvNAI", "CAADAgADf1AAAuCjggfqE-GQnopqyAI",
                    "CAADAgADaV0AAuCjggfi51NV8GUiRwI"]
 
