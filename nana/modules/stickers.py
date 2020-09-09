@@ -57,7 +57,7 @@ async def kang_stickers(client, message):
             await client.download_media(message.reply_to_message.sticker, file_name="nana/cache/sticker.png")
     elif message.reply_to_message and message.reply_to_message.photo:
         await client.download_media(message.reply_to_message.photo, file_name="nana/cache/sticker.png")
-    elif message.reply_to_message and message.reply_to_message.document and message.reply_to_message.document.mime_type == "image/png":
+    elif message.reply_to_message and message.reply_to_message.document and (message.reply_to_message.document.mime_type == "image/png" or message.reply_to_message.document.mime_type == "image/jpeg"):
         await client.download_media(message.reply_to_message.document, file_name="nana/cache/sticker.png")
     else:
         await edrep(message, text="Reply a sticker or photo to kang it!\nCurrent sticker pack is: {}\nCurrent animation pack is: {}".format(
@@ -91,13 +91,11 @@ async def kang_stickers(client, message):
         im.save("nana/cache/sticker.png", 'PNG')
 
     await client.send_message("@Stickers", "/addsticker")
-    await client.read_history("@Stickers")
     time.sleep(0.2)
     if message.reply_to_message.sticker and message.reply_to_message.sticker.mime_type == "application/x-tgsticker":
         await client.send_message("@Stickers", animation_pack.sticker)
     else:
         await client.send_message("@Stickers", sticker_pack)
-    await client.read_history("@Stickers")
     time.sleep(0.2)
     checkfull = await app.get_history("@Stickers", limit=1)
     if checkfull[
@@ -112,19 +110,13 @@ async def kang_stickers(client, message):
     else:
         await client.send_document("@Stickers", 'nana/cache/sticker.png')
         os.remove('nana/cache/sticker.png')
-    try:
+    if len(message.text.split(None,1)) > 1:
         ic = message.text.split(None, 1)[1]
-    except Exception as e:
-        print(e)
-        try:
-            ic = message.reply_to_message.sticker.emoji
-        except Exception as err:
-            print(err)
-            ic = "🤔"
-    if ic is None:
+    elif message.reply_to_message.sticker:
+        ic = message.reply_to_message.sticker.emoji
+    else:
         ic = "🤔"
     await client.send_message("@Stickers", ic)
-    await client.read_history("@Stickers")
     time.sleep(1)
     await client.send_message("@Stickers", "/done")
     if message.reply_to_message.sticker and message.reply_to_message.sticker.mime_type == "application/x-tgsticker":
@@ -134,4 +126,3 @@ async def kang_stickers(client, message):
     else:
         await edrep(message, text="**Sticker added!**\nYour sticker has been saved on [This sticker pack](https://t.me/addstickers/{})".format(
                 sticker_pack))
-    await client.read_history("@Stickers")
