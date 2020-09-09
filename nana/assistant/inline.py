@@ -10,7 +10,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputText
 from pyrogram.errors import PeerIdInvalid
 from platform import python_version
 
-from nana import setbot, Owner, OwnerName, DB_AVAILABLE, app, USERBOT_VERSION, AdminSettings
+from nana import setbot, Owner, OwnerName, DB_AVAILABLE, app, USERBOT_VERSION, AdminSettings, NANA_IMG
 from nana.helpers.msg_types import Types
 from nana.helpers.string import parse_button, build_keyboard
 from nana.modules.pm import welc_txt
@@ -280,11 +280,19 @@ async def inline_query_handler(client, query):
         text += f" - **Python**: `{python_version()}`\n"
         text += f" - **Database**: `{DB_AVAILABLE}`\n"
         buttons = [[InlineKeyboardButton("stats", callback_data="alive_message")]]
-        answers.append(InlineQueryResultArticle(
-            title="Alive",
-            description="Nana Userbot",
-            input_message_content=InputTextMessageContent(text, parse_mode="markdown", disable_web_page_preview=True),
-            reply_markup=InlineKeyboardMarkup(buttons)))
+        if NANA_IMG:
+            answers.append(InlineQueryResultPhoto(
+                photo_url=NANA_IMG,
+                title="Alive",
+                description="Nana Userbot",
+                caption=text,
+                reply_markup=InlineKeyboardMarkup(buttons)))
+        else:
+            answers.append(InlineQueryResultArticle(
+                title="Alive",
+                description="Nana Userbot",
+                input_message_content=InputTextMessageContent(text, parse_mode="markdown", disable_web_page_preview=True),
+                reply_markup=InlineKeyboardMarkup(buttons)))
         await client.answer_inline_query(query.id,
                                          results=answers,
                                          cache_time=0
